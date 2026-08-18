@@ -12,8 +12,112 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  warga
+  petugas
+  warung
+  admin
+}
+
 model User {
-  id    Int    @id @default(autoincrement())
-  name  String
-  email String @unique
+  id            Int      @id @default(autoincrement())
+  name          String
+  noRumah       String
+  noHP          String
+  password      String
+  role          Role
+  statusVerifikasi Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  // Relasi
+  qrTokens        QrToken[]
+  saldoPoinWarga  PoinWarga?
+  saldoPoinWarung PoinWarung?
+  transaksiSetorSebagaiWarga   TransaksiSetor[] @relation("WargaSetor")
+  transaksiSetorSebagaiPetugas TransaksiSetor[] @relation("PetugasProses")
+  transaksiTukarSebagaiWarga   TransaksiTukar[] @relation("WargaTukar")
+  transaksiTukarSebagaiWarung  TransaksiTukar[] @relation("WarungTerima")
+  notifications   Notification[]
+
+  // 1 no HP boleh dipakai di 2 role berbeda (warga & warung),
+  // tapi tidak boleh dobel di role yang sama
+  @@unique([noHP, role])
+}
+
+model QrToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  expiredAt DateTime
+  isUsed    Boolean  @default(false)
+}
+
+model PoinWarga {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+  saldo  Int  @default(0)
+}
+
+model PoinWarung {
+  id                       Int  @id @default(autoincrement())
+  userId                   Int  @unique
+  user                     User @relation(fields: [userId], references: [id])
+  saldoPoinTukarWarung     Int  @default(0)
+  saldoRupiahBelumDicairkan Int @default(0)
+}
+
+model KategoriSampah {
+  id             Int    @id @default(autoincrement())
+  namaKategori   String // misal: "Plastik & Botol", "Kertas & Kardus", "Logam & Kaleng"
+  ratePoinPerKg  Int    // poin per kg untuk kategori ini
+
+  transaksiSetor TransaksiSetor[]
+}
+
+model TransaksiSetor {
+  id           Int      @id @default(autoincrement())
+  wargaId      Int
+  warga        User     @relation("WargaSetor", fields: [wargaId], references: [id])
+  petugasId    Int
+  petugas      User     @relation("PetugasProses", fields: [petugasId], references: [id])
+  kategoriId   Int
+  kategori     KategoriSampah @relation(fields: [kategoriId], references: [id])
+  beratKg      Float
+  poinDidapat  Int
+  createdAt    DateTime @default(now())
+}
+
+model Product {
+  id              Int    @id @default(autoincrement())
+  name            String
+  hargaPoin       Int    // yang di-charge ke saldo poin warga
+  hargaRupiahAsli Int    // dasar hitung reimbursement ke warung (opsional, bisa dipakai nanti)
+
+  transaksiTukar  TransaksiTukar[]
+}
+
+model TransaksiTukar {
+  id           Int      @id @default(autoincrement())
+  wargaId      Int
+  warga        User     @relation("WargaTukar", fields: [wargaId], references: [id])
+  warungId     Int
+  warung       User     @relation("WarungTerima", fields: [warungId], references: [id])
+  productId    Int
+  product      Product  @relation(fields: [productId], references: [id])
+  jumlah       Int      @default(1)
+  poinTerpakai Int
+  createdAt    DateTime @default(now())
+}
+
+model Notification {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  title       String
+  description String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
 }
