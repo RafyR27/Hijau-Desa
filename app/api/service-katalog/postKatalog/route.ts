@@ -1,31 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-// GET /api/service-katalog - getKatalog & getKatalogBySearch
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search") || "";
-
-    const products = await prisma.product.findMany({
-      where: search
-        ? {
-            name: {
-              contains: search,
-              mode: "insensitive",
-            },
-          }
-        : undefined,
-      orderBy: { id: "asc" },
-    });
-
-    return NextResponse.json({ success: true, data: products }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-  }
-}
-
-// POST /api/service-katalog - postKatalog
+// POST /api/service-katalog/postKatalog
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -63,7 +39,7 @@ export async function OPTIONS() {
     status: 204,
     headers: {
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
     },
   });
