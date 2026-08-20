@@ -1,7 +1,22 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-// PUT /api/service-katalog/putKatalog/[id]
+/**
+ * Endpoint: PUT /api/service-katalog/putKatalog/[id]
+ * Description: Memperbarui data katalog produk berdasarkan ID.
+ * URL Parameters:
+ *   - id (number): ID produk yang akan diupdate
+ * Request Body (JSON) (semua field opsional, kirim yang ingin diubah saja):
+ * {
+ *   "name": "Bibit Unggul",  // (string, opsional) Nama baru produk
+ *   "hargaPoin": 80          // (number, opsional) Harga poin baru (>= 0)
+ * }
+ * Response Example:
+ * {
+ *   "success": true,
+ *   "data": { "id": 2, "name": "Bibit Unggul", "hargaPoin": 80, "createdAt": "...", "updatedAt": "..." }
+ * }
+ */
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

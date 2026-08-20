@@ -1,7 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-// GET /api/service-katalog/getKatalog
+/**
+ * Endpoint: GET /api/service-katalog/getKatalog
+ * Description: Mengambil semua data katalog produk.
+ * Query Parameters: Tidak ada
+ * Response Example:
+ * {
+ *   "success": true,
+ *   "data": [
+ *     { "id": 1, "name": "Produk A", "hargaPoin": 100, "createdAt": "...", "updatedAt": "..." }
+ *   ]
+ * }
+ */
 export async function GET() {
   try {
     const products = await prisma.product.findMany({

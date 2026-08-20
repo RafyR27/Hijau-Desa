@@ -1,7 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-// DELETE /api/service-katalog/deleteKatalog/[id]
+/**
+ * Endpoint: DELETE /api/service-katalog/deleteKatalog/[id]
+ * Description: Menghapus data katalog produk berdasarkan ID.
+ * URL Parameters:
+ *   - id (number): ID produk yang akan dihapus
+ * Response Example:
+ * {
+ *   "success": true,
+ *   "message": "Product deleted successfully"
+ * }
+ */
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
