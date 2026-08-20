@@ -91,12 +91,11 @@ model TransaksiSetor {
 }
 
 model Product {
-  id              Int    @id @default(autoincrement())
-  name            String
-  hargaPoin       Int    // yang di-charge ke saldo poin warga
-  hargaRupiahAsli Int    // dasar hitung reimbursement ke warung (opsional, bisa dipakai nanti)
+  id        Int      @id @default(autoincrement())
+  name      String
+  hargaPoin Int
 
-  transaksiTukar  TransaksiTukar[]
+  transaksiTukar TransaksiTukar[]
 }
 
 model TransaksiTukar {
