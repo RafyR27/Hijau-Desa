@@ -2,6 +2,17 @@
 // npm install --save-dev prisma dotenv
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
+import * as fs from "fs";
+import * as path from "path";
+
+// Load process.env manually
+const envPath = path.resolve(process.cwd(), "process.env");
+if (fs.existsSync(envPath)) {
+  const envConfig = require("dotenv").parse(fs.readFileSync(envPath));
+  for (const k in envConfig) {
+    process.env[k] = envConfig[k];
+  }
+}
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
@@ -9,6 +20,6 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DIRECT_URL"],
+    url: process.env["DIRECT_URL"] || "",
   },
 });
