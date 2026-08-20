@@ -1,3 +1,8 @@
+// Request Body:
+// {
+//   "userId": "string (UUID / User ID)"
+// }
+
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateQRCodeDataURL } from "@/lib/qr";
@@ -35,7 +40,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Generate token 
+    // Generate token
     const token = `HD-${randomBytes(16).toString("hex")}`;
     const expiredAt = new Date(Date.now() + QR_EXPIRY_MINUTES * 60 * 1000);
 

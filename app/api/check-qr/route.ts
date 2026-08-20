@@ -1,3 +1,8 @@
+// Query Parameter:
+// ?token=string (Token QR)
+//
+// ex URL: /api/check-qr?token=abc-123-xyz
+
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
