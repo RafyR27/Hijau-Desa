@@ -1,10 +1,5 @@
-"use client"
-
-import AuthLayout from "@/components/layouts/AuthLayout/AuthLayout"
+import AuthLayout from "@/components/layouts/AuthLayout/AuthLayout";
 
 export default function Auth() {
-    return (
-        <AuthLayout/>
-    )
+  return <AuthLayout />;
 }
-
