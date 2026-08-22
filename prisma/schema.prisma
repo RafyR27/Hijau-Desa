@@ -19,105 +19,162 @@ enum Role {
   admin
 }
 
-model User {
-  id            Int      @id @default(autoincrement())
-  name          String
-  noRumah       String
-  noHP          String
-  password      String
-  role          Role
-  statusVerifikasi Boolean  @default(false)
-  createdAt     DateTime @default(now())
+model Session {
+  id                  String   @id
+  expiresAt           DateTime
+  token               String   @unique
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  ipAddress           String?
+  userAgent           String?
 
-  // Relasi
-  qrTokens        QrToken[]
-  saldoPoinWarga  PoinWarga?
-  saldoPoinWarung PoinWarung?
+  userId              String
+  user                User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  issuer                String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@unique([issuer, accountId])
+}
+
+model Verification {
+  id                  String   @id
+  identifier          String
+  value               String
+  expiresAt           DateTime
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+model User {
+  id                           String   @id
+  name                         String
+  email                        String   @unique
+  emailVerified                Boolean  @default(false)
+  image                        String?
+  noHP                         String?  @unique
+  noRumah                      String?
+  role                         Role     @default(warga)
+  statusVerifikasi             Boolean  @default(false)
+  newAccount                   Boolean  @default(true)
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
+
+  // Better Auth
+  sessions                     Session[]
+  accounts                     Account[]
+
+  qrTokens                     QrToken[]
+  saldoPoinWarga               PoinWarga?
+  saldoPoinWarung              PoinWarung?
   transaksiSetorSebagaiWarga   TransaksiSetor[] @relation("WargaSetor")
   transaksiSetorSebagaiPetugas TransaksiSetor[] @relation("PetugasProses")
   transaksiTukarSebagaiWarga   TransaksiTukar[] @relation("WargaTukar")
   transaksiTukarSebagaiWarung  TransaksiTukar[] @relation("WarungTerima")
-  notifications   Notification[]
-
-  // 1 no HP boleh dipakai di 2 role berbeda (warga & warung),
-  // tapi tidak boleh dobel di role yang sama
-  @@unique([noHP, role])
+  notifications                Notification[]
 }
 
 model QrToken {
-  id        Int      @id @default(autoincrement())
-  token     String   @unique
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  expiredAt DateTime
-  isUsed    Boolean  @default(false)
+  id                   Int      @id @default(autoincrement())
+  token                String   @unique
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id])
+  createdAt            DateTime @default(now())
+  expiredAt            DateTime
+  isUsed               Boolean  @default(false)
 }
 
 model PoinWarga {
-  id     Int  @id @default(autoincrement())
-  userId Int  @unique
-  user   User @relation(fields: [userId], references: [id])
-  saldo  Int  @default(0)
+  id                Int  @id @default(autoincrement())
+  userId            String  @unique
+  user              User @relation(fields: [userId], references: [id])
+  saldo             Int  @default(0)
 }
 
 model PoinWarung {
   id                       Int  @id @default(autoincrement())
-  userId                   Int  @unique
+  userId                   String  @unique
   user                     User @relation(fields: [userId], references: [id])
   saldoPoinTukarWarung     Int  @default(0)
-  saldoRupiahBelumDicairkan Int @default(0)
+  saldoRupiah              Int @default(0)
 }
 
 model KategoriSampah {
-  id             Int    @id @default(autoincrement())
-  namaKategori   String // misal: "Plastik & Botol", "Kertas & Kardus", "Logam & Kaleng"
-  ratePoinPerKg  Int    // poin per kg untuk kategori ini
+  id                        Int    @id @default(autoincrement())
+  namaKategori              String // misal: "Plastik & Botol", "Kertas & Kardus", "Logam & Kaleng"
+  ratePoinPerKg             Int    // poin per kg untuk kategori ini
+  isActive                  Boolean @default(true)
 
-  transaksiSetor TransaksiSetor[]
+  transaksiSetor            TransaksiSetor[]
 }
 
 model TransaksiSetor {
-  id           Int      @id @default(autoincrement())
-  wargaId      Int
-  warga        User     @relation("WargaSetor", fields: [wargaId], references: [id])
-  petugasId    Int
-  petugas      User     @relation("PetugasProses", fields: [petugasId], references: [id])
-  kategoriId   Int
-  kategori     KategoriSampah @relation(fields: [kategoriId], references: [id])
-  beratKg      Float
-  poinDidapat  Int
-  createdAt    DateTime @default(now())
+  id                      Int      @id @default(autoincrement())
+  wargaId                 String
+  warga                   User     @relation("WargaSetor", fields: [wargaId], references: [id])
+  petugasId               String
+  petugas                 User     @relation("PetugasProses", fields: [petugasId], references: [id])
+  kategoriId              Int
+  kategori                KategoriSampah @relation(fields: [kategoriId], references: [id])
+  beratKg                 Float
+  poinMasuk               Int
+  createdAt               DateTime @default(now())
 }
 
 model Product {
-  id              Int    @id @default(autoincrement())
-  name            String
-  hargaPoin       Int    // yang di-charge ke saldo poin warga
-  hargaRupiahAsli Int    // dasar hitung reimbursement ke warung (opsional, bisa dipakai nanti)
+  id                      Int    @id @default(autoincrement())
+  namaProduct             String
+  hargaPoin               Int    // yang di-charge ke saldo poin warga
+  isActive                Boolean @default(true)
 
-  transaksiTukar  TransaksiTukar[]
+  transaksiTukar          TransaksiTukar[]
 }
 
 model TransaksiTukar {
-  id           Int      @id @default(autoincrement())
-  wargaId      Int
-  warga        User     @relation("WargaTukar", fields: [wargaId], references: [id])
-  warungId     Int
-  warung       User     @relation("WarungTerima", fields: [warungId], references: [id])
-  productId    Int
-  product      Product  @relation(fields: [productId], references: [id])
-  jumlah       Int      @default(1)
-  poinTerpakai Int
-  createdAt    DateTime @default(now())
+  id                      Int      @id @default(autoincrement())
+  wargaId                 String
+  warga                   User     @relation("WargaTukar", fields: [wargaId], references: [id])
+  warungId                String
+  warung                  User     @relation("WarungTerima", fields: [warungId], references: [id])
+  productId               Int
+  product                 Product  @relation(fields: [productId], references: [id])
+  poinKeluar              Int
+  createdAt               DateTime @default(now())
 }
 
 model Notification {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
-  title       String
-  description String
-  isRead      Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  id                     Int      @id @default(autoincrement())
+  userId                 String
+  user                   User     @relation(fields: [userId], references: [id])
+  title                  String
+  description            String
+  isRead                 Boolean  @default(false)
+  createdAt              DateTime @default(now())
+}
+
+model Konfigurasi {
+  id                         Int   @id @default(autoincrement())
+  ratePoinKeRupiah           Int  @default(100) // 1 poin = berapa rupiah
 }

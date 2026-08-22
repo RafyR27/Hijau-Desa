@@ -27,7 +27,7 @@ const RegisterEmailSection = () => {
     handleShowPassword,
     control,
     handleSubmit,
-    handleStepOne,
+    handleRegister,
     isPendingRegister,
   } = useRegisterEmail();
 
@@ -63,14 +63,14 @@ const RegisterEmailSection = () => {
 
           <form
             className="w-full space-y-7"
-            onSubmit={handleSubmit(handleStepOne)}
+            onSubmit={handleSubmit(handleRegister)}
           >
             <Controller
               name="name"
               control={control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="phone">Nama Lengkap</FieldLabel>
+                  <FieldLabel htmlFor="name">Nama Lengkap</FieldLabel>
 
                   <FieldContent>
                     <Input
