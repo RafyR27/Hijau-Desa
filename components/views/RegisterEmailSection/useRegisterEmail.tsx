@@ -4,6 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { IRegister } from "@/types/user";
 import { useState } from "react";
+import environment from "@/config/environment";
+import { signUp } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 const formRegisterSchema = z.object({
   name: z
@@ -22,56 +26,66 @@ const formRegisterSchema = z.object({
 });
 
 export const useRegisterEmail = () => {
-    const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
-    const handleShowPassword = () => {
-      setShowPassword(!showPassword);
-    };
+  const callbackURL = `${environment.BETTER_AUTH_URL}/warga/dashboard`;
 
-    const { control, handleSubmit, reset, setError } = useForm<
-      z.infer<typeof formRegisterSchema>
-    >({
+  const handleShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const { control, handleSubmit } = useForm<z.infer<typeof formRegisterSchema>>(
+    {
       resolver: zodResolver(formRegisterSchema),
       defaultValues: {
         name: "",
         email: "",
         password: "",
       },
+    },
+  );
+
+  const registerService = async (payload: IRegister) => {
+    const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+      payload.name,
+    )}&background=random`;
+
+    const { data, error } = await signUp.email({
+      name: payload.name,
+      email: payload.email,
+      password: payload.password,
+      image: avatar,
     });
 
-    const registerService = async (payload: IRegister) => {
-      console.log(payload);
-    };
+    if (error) {
+      throw new Error(error.message || "Terjadi kesalahan saat mendaftar");
+    }
 
-    const { mutate: mutateRegister, isPending: isPendingRegister } =
-      useMutation({
-        mutationFn: registerService,
-        onError(error: Error) {
-          setError("root", {
-            message: error?.message || "Terjadi kesalahan",
-          });
-          // sonner alert error disini
-        },
+    return data;
+  };
 
-        onSuccess: () => {
-          // sonner alert success disini
-
-          reset({
-            name: "",
-            email: "",
-            password: "",
-          });
-        },
+  const { mutate: mutateRegister, isPending: isPendingRegister } = useMutation({
+    mutationFn: registerService,
+    onError(error: Error) {
+      toast.error(error?.message || "Terjadi kesalahan saat mendaftar", {
+        position: "top-right",
       });
+    },
 
-    const handleStepOne = (payload: IRegister) => mutateRegister(payload);
+    onSuccess: () => {
+      router.push(callbackURL);
+    },
+  });
 
-    return {
-      handleShowPassword,
-      showPassword,
-      control,
-      handleSubmit,
-      handleStepOne,
-      isPendingRegister,
-    };
+  const handleRegister = (payload: IRegister) => mutateRegister(payload);
+
+  return {
+    handleShowPassword,
+    showPassword,
+    control,
+    handleSubmit,
+    handleRegister,
+    isPendingRegister,
+  };
 };
