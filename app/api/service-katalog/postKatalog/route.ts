@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
     const newProduct = await prisma.product.create({
       data: {
-        name: name.trim(),
+        namaProduct: name.trim(),
         hargaPoin,
       },
     });

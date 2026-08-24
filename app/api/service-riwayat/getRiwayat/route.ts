@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const filter = (searchParams.get("filter") || "semua").toLowerCase();
     const userIdParam = searchParams.get("userId");
-    const userId = userIdParam ? parseInt(userIdParam, 10) : undefined;
+    const userId = userIdParam ? userIdParam : undefined;
 
     if (!["semua", "masuk", "keluar"].includes(filter)) {
       return NextResponse.json(
@@ -65,7 +65,7 @@ export async function GET(request: Request) {
         include: {
           warga: { select: { id: true, name: true, noRumah: true } },
           petugas: { select: { id: true, name: true } },
-          kategori: { select: { id: true, namaKategori: true, ratePoinPerKg: true } },
+          kategori: { select: { id: true, namaKategori: true } },
         },
         orderBy: { createdAt: "desc" },
       });
@@ -75,7 +75,7 @@ export async function GET(request: Request) {
         type: "masuk",
         kategoriSampah: item.kategori.namaKategori,
         beratKg: item.beratKg,
-        poin: item.poinDidapat,
+        poin: item.poinMasuk,
         warga: item.warga,
         petugas: item.petugas,
         createdAt: item.createdAt,
@@ -90,7 +90,7 @@ export async function GET(request: Request) {
         include: {
           warga: { select: { id: true, name: true, noRumah: true } },
           warung: { select: { id: true, name: true } },
-          product: { select: { id: true, name: true, hargaPoin: true } },
+          product: { select: { id: true, namaProduct: true, hargaPoin: true } },
         },
         orderBy: { createdAt: "desc" },
       });
@@ -98,9 +98,9 @@ export async function GET(request: Request) {
       transaksiTukarData = tukarList.map((item) => ({
         id: item.id,
         type: "keluar",
-        product: item.product.name,
-        jumlah: item.jumlah,
-        poinTerpakai: item.poinTerpakai,
+        product: item.product.namaProduct,
+        jumlah: 1,
+        poinTerpakai: item.poinKeluar,
         warga: item.warga,
         warung: item.warung,
         createdAt: item.createdAt,
