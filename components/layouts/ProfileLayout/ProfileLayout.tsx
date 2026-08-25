@@ -19,10 +19,8 @@ import { usePathname, useRouter } from "next/navigation";
 
 const ProfileLayout = ({
   user,
-  children,
 }: {
   user?: SessionUser;
-  children?: React.ReactNode;
 }) => {
   const router = useRouter();
   const route = usePathname();
@@ -38,8 +36,8 @@ const ProfileLayout = ({
   };
 
   return (
-    <div className="w-full flex flex-col lg:flex-row gap-7">
-      <div className="flex gap-7 items-center w-full lg:w-1/2 flex-col">
+    <div className="max-w-3xl mx-auto flex flex-col gap-7">
+      <div className="flex gap-7 items-center w-full flex-col">
         <div className="flex gap-4 items-center w-full lg:flex-col">
           <Avatar className="w-13 h-13 lg:w-15 lg:h-15">
             <AvatarImage
@@ -59,10 +57,6 @@ const ProfileLayout = ({
             </p>
             <p className="text-xs truncate max-w-65 lg:text-sm">{user?.noHP}</p>
           </div>
-        </div>
-
-        <div className={cn(user?.statusVerifikasi ? "block" : "hidden")}>
-          {children}
         </div>
 
         <Card
@@ -98,7 +92,7 @@ const ProfileLayout = ({
         </Card>
       </div>
 
-      <div className="flex flex-col gap-7 w-full lg:w-1/2 lg:border lg:p-3 lg:rounded-xl">
+      <div className="flex flex-col gap-7 w-full lg:border lg:p-3 lg:rounded-xl">
         {/* Akun */}
         <div className="space-y-3">
           <p className="px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">

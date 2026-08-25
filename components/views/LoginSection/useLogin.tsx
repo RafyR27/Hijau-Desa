@@ -48,7 +48,7 @@ export const useLogin = () => {
   };
 
 
-  const { mutate: mutateLogin, isPending: isPendingLogin } = useMutation({
+  const { mutate: mutateLogin, isPending: isPendingLogin, isSuccess: isSuccessLogin } = useMutation({
     mutationFn: loginService,
     onError(error: Error) {
       toast.error(error?.message || "Terjadi kesalahan saat masuk", {
@@ -64,6 +64,7 @@ export const useLogin = () => {
   const handleLogin = (payload: ILogin) => mutateLogin(payload);
 
   return {
+    isSuccessLogin,
     handleShowPassword,
     showPassword,
     handleLogin,

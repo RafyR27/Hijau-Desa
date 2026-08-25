@@ -8,7 +8,7 @@ export default function CardKatalog({
 }: {
   name: string;
   image: string;
-  poin: string;
+  poin: number;
 }) {
   return (
     <Card
@@ -16,13 +16,13 @@ export default function CardKatalog({
       className="overflow-hidden rounded-xl py-0 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
     >
       <div className="relative aspect-square w-full bg-muted">
-        <Image src={image} alt={name} fill className="object-cover" />
+        <Image src={image || "/garbage-can.webp"} alt={name} fill className="object-cover" />
       </div>
 
       <CardContent className="flex flex-col gap-1 px-3 py-3">
-        <h3 className="text-sm md:text-lg font-medium leading-5">{name}</h3>
+        <h3 className="text-sm font-medium leading-5">{name}</h3>
 
-        <p className="text-sm md:text-lg font-semibold text-orange-500">{poin} Poin</p>
+        <p className="text-sm font-semibold text-orange-500">{poin} Poin</p>
       </CardContent>
     </Card>
   );

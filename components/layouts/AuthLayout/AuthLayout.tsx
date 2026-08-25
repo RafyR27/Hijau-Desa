@@ -54,7 +54,7 @@ export default function AuthLayout() {
           </div>
         </div>
       </div>
-      <div className="flex flex-col justify-between items-center px-5 lg:px-10">
+      <div className="flex flex-col justify-between items-center px-5 lg:px-10 lg:h-screen lg:overflow-y-auto">
         <div className="flex justify-start w-full py-3">
           <Image
             src={"/logo-name-nobg.svg"}

@@ -180,11 +180,13 @@ const AgreementView = ({
   handleSubmit,
   handleUpdate,
   isPendingUpdate,
+  isSuccessUpdate,
   onBack,
 }: {
   handleSubmit: UseFormHandleSubmit<z.infer<typeof formCompleteProfileSchema>>;
   handleUpdate: (data: z.infer<typeof formCompleteProfileSchema>) => void;
   isPendingUpdate: boolean;
+  isSuccessUpdate: boolean;
   onBack: () => void;
 }) => {
   const [agree, setAgree] = useState(false);
@@ -278,10 +280,14 @@ const AgreementView = ({
 
           <Button
             type="submit"
-            disabled={!agree || isPendingUpdate}
+            disabled={!agree || isPendingUpdate || isSuccessUpdate}
             className="px-8"
           >
-            {isPendingUpdate ? <Spinner className="size-4" /> : "Selesai"}
+            {isPendingUpdate || isSuccessUpdate ? (
+              <Spinner className="size-4" />
+            ) : (
+              "Selesai"
+            )}
           </Button>
         </div>
       </form>
@@ -290,8 +296,13 @@ const AgreementView = ({
 };
 
 const CompleteProfileSection = ({ user }: { user?: SessionUser }) => {
-  const { control, handleSubmit, handleUpdate, isPendingUpdate } =
-    useCompleteProfile();
+  const {
+    control,
+    handleSubmit,
+    handleUpdate,
+    isPendingUpdate,
+    isSuccessUpdate,
+  } = useCompleteProfile();
   const [step, setStep] = useState(0);
 
   return (
@@ -315,6 +326,7 @@ const CompleteProfileSection = ({ user }: { user?: SessionUser }) => {
           handleSubmit={handleSubmit}
           handleUpdate={handleUpdate}
           isPendingUpdate={isPendingUpdate}
+          isSuccessUpdate={isSuccessUpdate}
           onBack={() => setStep(1)}
         />
       </div>

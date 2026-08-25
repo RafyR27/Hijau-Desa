@@ -8,7 +8,7 @@ import { userRateLimit } from "@/lib/rate-limit";
 
 const QR_EXPIRY_MINUTES = 1;
 
-export async function GET() {
+export async function POST() {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

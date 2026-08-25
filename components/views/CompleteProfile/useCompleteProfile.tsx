@@ -2,7 +2,6 @@ import instance from "@/lib/instance";
 import { ICompleteProfile } from "@/types/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -25,8 +24,6 @@ export const formCompleteProfileSchema = z.object({
 });
 
 export const useCompleteProfile = () => {
-  const router = useRouter();
-
   const {
     control,
     handleSubmit,
@@ -42,7 +39,7 @@ export const useCompleteProfile = () => {
     await instance.patch("/general/complete-profile", payload)
   };
 
-  const { mutate: mutateUpdate, isPending: isPendingUpdate } = useMutation({
+  const { mutate: mutateUpdate, isPending: isPendingUpdate, isSuccess: isSuccessUpdate } = useMutation({
     mutationFn: updateService,
     onError(error: Error) {
       toast.error(error?.message, {
@@ -51,13 +48,14 @@ export const useCompleteProfile = () => {
     },
 
     onSuccess: () => {
-      router.push("/warga/dashboard");
+      window.location.href = "/warga/dashboard";
     },
   });
 
   const handleUpdate = (payload: ICompleteProfile) => mutateUpdate(payload);
 
   return {
+    isSuccessUpdate,
     control,
     handleSubmit,
     isPendingUpdate,

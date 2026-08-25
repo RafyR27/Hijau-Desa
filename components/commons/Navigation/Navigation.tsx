@@ -13,6 +13,7 @@ import {
   History,
   House,
   Package,
+  ScanLine,
   UserRound,
 } from "lucide-react";
 import Image from "next/image";
@@ -64,7 +65,7 @@ const NavbarMain = ({ user }: { user?: SessionUser }) => {
                   ? "/petugas/notification"
                   : "/warung/notification"
             }
-            className="rounded-full p-2 hover:bg-accent"
+            className="rounded-full p-2 hover:bg-accent active:scale-90 transition-transform"
           >
             <Bell size={22} strokeWidth={2} />
           </Link>
@@ -87,7 +88,7 @@ const Navbar = ({ user }: { user?: SessionUser }) => {
               ? "/petugas/dashboard"
               : "/warung/dashboard"
         }
-        className="p-2 hover:bg-accent rounded-full md:hidden"
+        className="p-2 hover:bg-accent rounded-full md:hidden active:scale-90 transition-transform"
       >
         <ArrowLeft size={25} />
       </Link>
@@ -128,7 +129,7 @@ const BottomBar = ({ user }: { user?: SessionUser }) => {
                 : "/warung/dashboard"
           }
           className={cn(
-            "flex flex-col items-center justify-center gap-1 md:gap-0 rounded-xl h-15 md:h-12.5 w-15 text-[0.8rem] transition",
+            "flex flex-col items-center justify-center gap-1 md:gap-0 rounded-xl h-15 md:h-12.5 w-15 text-[0.8rem] transition active:scale-90",
             route.includes("dashboard")
               ? "bg-accent text-primary hover:bg-accent/80 font-bold"
               : "hover:bg-accent hover:text-primary text-muted-foreground",
@@ -148,7 +149,7 @@ const BottomBar = ({ user }: { user?: SessionUser }) => {
                 : "/warung/riwayat"
           }
           className={cn(
-            "flex flex-col items-center justify-center gap-1 md:gap-0 rounded-xl h-15 md:h-12.5 w-15 text-[0.8rem] transition",
+            "flex flex-col items-center justify-center gap-1 md:gap-0 rounded-xl h-15 md:h-12.5 w-15 text-[0.8rem] transition active:scale-90",
             route.includes("riwayat")
               ? "bg-accent text-primary hover:bg-accent/80 font-bold"
               : "hover:bg-accent hover:text-primary text-muted-foreground",
@@ -159,13 +160,28 @@ const BottomBar = ({ user }: { user?: SessionUser }) => {
         </Link>
 
         {/* QR Code */}
-        <div className="hidden md:block">
-          <PopupQRlargeBottomBar user={user} />
-        </div>
+        {route.includes("petugas") || user?.role === "petugas" ? (
+          <Link
+            href="/petugas/scan"
+            className="p-3.5 md:p-3 -translate-y-5 md:translate-y-0 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground text-center transition-transform active:scale-95 flex items-center justify-center"
+          >
+            <ScanLine className="size-7 md:size-6" strokeWidth={2} />
+          </Link>
+        ) : (
+          <>
+            <div className="hidden md:block">
+              <PopupQRlargeBottomBar
+                statusVerifikasi={user?.statusVerifikasi}
+              />
+            </div>
 
-        <div className="block md:hidden">
-          <PopupQRMobileBottomBar user={user} />
-        </div>
+            <div className="block md:hidden">
+              <PopupQRMobileBottomBar
+                statusVerifikasi={user?.statusVerifikasi}
+              />
+            </div>
+          </>
+        )}
 
         {/* Katalog */}
         <Link
@@ -177,7 +193,7 @@ const BottomBar = ({ user }: { user?: SessionUser }) => {
                 : "/warung/katalog"
           }
           className={cn(
-            "flex flex-col items-center justify-center gap-1 md:gap-0 rounded-xl h-15 md:h-12.5 w-15 text-[0.8rem] transition",
+            "flex flex-col items-center justify-center gap-1 md:gap-0 rounded-xl h-15 md:h-12.5 w-15 text-[0.8rem] transition active:scale-90",
             route.includes("katalog")
               ? "bg-accent text-primary hover:bg-accent/80 font-bold"
               : "hover:bg-accent hover:text-primary text-muted-foreground",
@@ -197,7 +213,7 @@ const BottomBar = ({ user }: { user?: SessionUser }) => {
                 : "/warung/profile"
           }
           className={cn(
-            "flex flex-col items-center justify-center gap-1 md:gap-0 rounded-xl h-15 md:h-12.5 w-15 text-[0.8rem] transition",
+            "flex flex-col items-center justify-center gap-1 md:gap-0 rounded-xl h-15 md:h-12.5 w-15 text-[0.8rem] transition active:scale-90",
             route.includes("profile")
               ? "bg-accent text-primary hover:bg-accent/80 font-bold"
               : "hover:bg-accent hover:text-primary text-muted-foreground",
@@ -224,7 +240,7 @@ const NavbarProfile = () => {
               ? "/petugas/profile"
               : "/warung/profile"
         }
-        className="p-2 hover:bg-accent rounded-full flex gap-3 font-medium"
+        className="p-2 hover:bg-accent rounded-full flex gap-3 font-medium active:scale-95 transition-transform"
       >
         <ArrowLeft className="size-6" />
         Kembali
@@ -234,3 +250,4 @@ const NavbarProfile = () => {
 };
 
 export { NavbarMain, Navbar, BottomBar, NavbarProfile };
+export type { SessionUser };

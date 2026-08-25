@@ -1,19 +1,9 @@
 import MainLayout from "@/components/layouts/MainLayout/MainLayout";
 import WargaDashboard from "@/components/views/WargaSections/Dashboard/WargaDashboard";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { requireRole } from "@/lib/session";
 
 export default async function DashboardWarga() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) redirect("/auth");
-  if (!session.user.noHP || !session.user.noRumah) redirect("/complete-profile");
-  if (session.user.role === "petugas") redirect("/petugas/dashboard");
-  if (session.user.role === "warung") redirect("/warung/dashboard");
-  if (session.user.role === "admin") redirect("/admin/dashboard");
+  const session = await requireRole("warga");
 
   return (
     <MainLayout user={session.user}>

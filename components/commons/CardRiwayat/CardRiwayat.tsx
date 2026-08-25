@@ -3,46 +3,100 @@ import { cn } from "@/lib/utils";
 import { ShoppingBag } from "lucide-react";
 import { MdOutlineRecycling } from "react-icons/md";
 
-export default function CardRiwayat({
-  title,
-  date,
-  poin,
-}: {
+interface CardRiwayatProps {
   title: string;
   date: string;
   poin: string;
-}) {
+  weight?: string;
+  className?: string;
+}
+
+function CardRiwayat({
+  title,
+  date,
+  poin,
+  weight,
+  className,
+}: CardRiwayatProps) {
+  const isPositive = poin.includes("+");
+
   return (
-    <Card className="py-3 rounded-lg">
-      <CardContent className="flex justify-between px-5">
-        <div className="flex gap-4 items-center">
-          <span
+    <Card
+      className={cn("py-3.5 px-4 md:px-5 rounded-xl bg-card ring-1", className)}
+    >
+      <CardContent className="flex items-center justify-between p-0">
+        <div className="flex items-center gap-3.5">
+          <div
             className={cn(
-              "text-[1.5rem] p-3 rounded-full",
-              poin.includes("+")
-                ? "text-primary bg-secondary/20"
-                : "text-destructive/60 bg-destructive/10",
+              "flex size-11 shrink-0 items-center justify-center rounded-xl text-xl",
+              isPositive
+                ? "bg-tertiary text-primary"
+                : "bg-destructive/10 text-destructive",
             )}
           >
-            {poin.includes("+") ? <MdOutlineRecycling /> : <ShoppingBag />}
-          </span>
-          <div className="flex flex-col max-w-40 md:max-w-full gap-1">
-            <p className="capitalize font-medium">{title}</p>
-            <p className="font-light text-muted-foreground text-[0.8rem]">
-              {date}
-            </p>
+            {isPositive ? (
+              <MdOutlineRecycling className="size-6" />
+            ) : (
+              <ShoppingBag className="size-5" />
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-medium text-sm text-foreground leading-snug">
+                {title}
+              </span>
+              {weight && (
+                <span className="text-[0.7rem] bg-tertiary text-primary font-semibold px-2 py-0.5 rounded-md">
+                  {weight}
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>{date}</span>
+            </div>
           </div>
         </div>
 
-        <p
+        <span
           className={cn(
-            "h-full self-center font-bold text-primary text-xl",
-            poin.includes("+") ? "text-primary" : "text-destructive/60",
+            "font-bold text-base md:text-lg shrink-0 ml-3",
+            isPositive ? "text-primary" : "text-destructive",
           )}
         >
           {poin}
-        </p>
+        </span>
       </CardContent>
     </Card>
   );
 }
+
+function CardPetugasGrid({
+  title,
+  totalSetor,
+  totalSampah,
+}: {
+  title: string;
+  totalSetor?: number;
+  totalSampah?: number;
+}) {
+  return (
+    <Card className="py-3.5 px-4 md:px-5 rounded-xl bg-card ring-1">
+      <CardContent className="flex flex-col items-start justify-between p-0 h-20">
+        <h4 className="font-semibold">{title}</h4>
+        {!totalSetor && !totalSampah ? (
+          <p className="text-2xl font-semibold">
+            0
+          </p>
+        ) : (
+          <p className="text-2xl font-semibold">
+            {totalSetor ? totalSetor : totalSampah + " Kg"}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+export { CardRiwayat, CardPetugasGrid };
