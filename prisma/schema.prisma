@@ -145,8 +145,9 @@ model TransaksiSetor {
 
 model Product {
   id                      Int    @id @default(autoincrement())
+  image                   String?
   namaProduct             String
-  hargaPoin               Int    // yang di-charge ke saldo poin warga
+  hargaPoin               Int    
   isActive                Boolean @default(true)
 
   transaksiTukar          TransaksiTukar[]

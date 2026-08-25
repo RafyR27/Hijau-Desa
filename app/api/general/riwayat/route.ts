@@ -1,8 +1,21 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { generalRateLimit } from "@/lib/rate-limit";
+import { Transaction } from "@/types/riwayat";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+
+type FilterType = "all" | "in" | "out";
+
+function isValidDateFormat(value: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function isValidDate(value: string) {
+  const date = new Date(`${value}T00:00:00+07:00`);
+
+  return !Number.isNaN(date.getTime());
+}
 
 export async function GET(request: Request) {
   try {
@@ -18,11 +31,12 @@ export async function GET(request: Request) {
           message: "Unauthorized",
           data: null,
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     const identifier = session.user.id;
+    const role = session.user.role;
     const rateLimit = await generalRateLimit.limit(identifier);
 
     if (!rateLimit.success) {
@@ -33,14 +47,22 @@ export async function GET(request: Request) {
           message: "Terlalu banyak permintaan. Silakan coba lagi nanti.",
           data: null,
         },
-        { status: 429 }
+        { status: 429 },
       );
     }
 
     const { searchParams } = new URL(request.url);
-    const filter = (searchParams.get("filter") || "all").toLowerCase();
+
+    const filter = (
+      searchParams.get("filter") || "all"
+    ).toLowerCase() as FilterType;
+
+    const startDateParam = searchParams.get("startDate");
+    const endDateParam = searchParams.get("endDate");
+
     const limitParam = searchParams.get("limit");
-    const limit = limitParam ? parseInt(limitParam, 10) : undefined;
+
+    let limit = limitParam ? Number(limitParam) : 10;
 
     if (!["all", "in", "out"].includes(filter)) {
       return NextResponse.json(
@@ -50,75 +72,388 @@ export async function GET(request: Request) {
           message: "Filter harus bernilai 'all', 'in', atau 'out'",
           data: null,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    let transaksiSetor: any[] | null = null;
-    let transaksiTukar: any[] | null = null;
+    if (limitParam !== null) {
+      const parsedLimit = Number(limitParam);
 
-    if (filter === "all" || filter === "in") {
-      const setorList = await prisma.transaksiSetor.findMany({
-        where: { wargaId: identifier },
-        include: {
-          kategori: { select: { namaKategori: true } },
-        },
-        orderBy: { createdAt: "desc" },
-        ...(limit ? { take: limit } : {}),
-      });
+      if (
+        !Number.isInteger(parsedLimit) ||
+        parsedLimit <= 0 ||
+        parsedLimit > 100
+      ) {
+        return NextResponse.json(
+          {
+            status: 400,
+            code: "INVALID_LIMIT",
+            message: "Limit harus berupa bilangan bulat antara 1 dan 100",
+            data: null,
+          },
+          { status: 400 },
+        );
+      }
 
-      transaksiSetor = setorList.map((item) => ({
-        namaKategori: item.kategori.namaKategori,
-        poinMasuk: item.poinMasuk,
+      limit = parsedLimit;
+    }
+
+    if (startDateParam) {
+      if (!isValidDateFormat(startDateParam) || !isValidDate(startDateParam)) {
+        return NextResponse.json(
+          {
+            status: 400,
+            code: "INVALID_START_DATE",
+            message: "startDate harus menggunakan format YYYY-MM-DD",
+            data: null,
+          },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (endDateParam) {
+      if (!isValidDateFormat(endDateParam) || !isValidDate(endDateParam)) {
+        return NextResponse.json(
+          {
+            status: 400,
+            code: "INVALID_END_DATE",
+            message: "endDate harus menggunakan format YYYY-MM-DD",
+            data: null,
+          },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (startDateParam && endDateParam) {
+      const start = new Date(`${startDateParam}T00:00:00+07:00`);
+
+      const end = new Date(`${endDateParam}T00:00:00+07:00`);
+
+      if (start > end) {
+        return NextResponse.json(
+          {
+            status: 400,
+            code: "INVALID_DATE_RANGE",
+            message: "startDate tidak boleh lebih besar dari endDate",
+            data: null,
+          },
+          { status: 400 },
+        );
+      }
+    }
+
+    let startDate: Date | undefined;
+    let endDateExclusive: Date | undefined;
+
+    if (startDateParam) {
+      startDate = new Date(`${startDateParam}T00:00:00+07:00`);
+    }
+
+    if (endDateParam) {
+      endDateExclusive = new Date(`${endDateParam}T00:00:00+07:00`);
+
+      endDateExclusive.setDate(endDateExclusive.getDate() + 1);
+    }
+
+    const dateFilter =
+      startDate || endDateExclusive
+        ? {
+            createdAt: {
+              ...(startDate ? { gte: startDate } : {}),
+              ...(endDateExclusive ? { lt: endDateExclusive } : {}),
+            },
+          }
+        : {};
+
+    let transaksiSetor: Array<{
+      id: number;
+      namaKategori: string;
+      beratKg: number;
+      poinMasuk: number;
+      createdAt: Date;
+    }> = [];
+
+    let transaksiTukar: Array<{
+      id: number;
+      namaProduct: string;
+      poinKeluar: number;
+      createdAt: Date;
+    }> = [];
+
+    // Role-based transaction fetching
+    if (role === "warga") {
+      if (filter === "all" || filter === "in") {
+        const setorList = await prisma.transaksiSetor.findMany({
+          where: {
+            wargaId: identifier,
+            ...dateFilter,
+          },
+          include: {
+            kategori: {
+              select: {
+                namaKategori: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
+
+        transaksiSetor = setorList.map((item) => ({
+          id: item.id,
+          namaKategori: item.kategori.namaKategori,
+          beratKg: item.beratKg,
+          poinMasuk: item.poinMasuk,
+          createdAt: item.createdAt,
+        }));
+      }
+
+      if (filter === "all" || filter === "out") {
+        const tukarList = await prisma.transaksiTukar.findMany({
+          where: {
+            wargaId: identifier,
+            ...dateFilter,
+          },
+          include: {
+            product: {
+              select: {
+                namaProduct: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
+
+        transaksiTukar = tukarList.map((item) => ({
+          id: item.id,
+          namaProduct: item.product.namaProduct,
+          poinKeluar: item.poinKeluar,
+          createdAt: item.createdAt,
+        }));
+      }
+    } else if (role === "petugas") {
+      // Petugas hanya memiliki transaksi setor (melayani/menimbang sampah warga)
+      if (filter === "all" || filter === "in") {
+        const setorList = await prisma.transaksiSetor.findMany({
+          where: {
+            petugasId: identifier,
+            ...dateFilter,
+          },
+          include: {
+            kategori: {
+              select: {
+                namaKategori: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
+
+        transaksiSetor = setorList.map((item) => ({
+          id: item.id,
+          namaKategori: item.kategori.namaKategori,
+          beratKg: item.beratKg,
+          poinMasuk: item.poinMasuk,
+          createdAt: item.createdAt,
+        }));
+      }
+    } else if (role === "warung") {
+      // Warung melayani transaksi penukaran barang dari warga
+      if (filter === "all" || filter === "out" || filter === "in") {
+        const tukarList = await prisma.transaksiTukar.findMany({
+          where: {
+            warungId: identifier,
+            ...dateFilter,
+          },
+          include: {
+            product: {
+              select: {
+                namaProduct: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
+
+        transaksiTukar = tukarList.map((item) => ({
+          id: item.id,
+          namaProduct: item.product.namaProduct,
+          poinKeluar: item.poinKeluar,
+          createdAt: item.createdAt,
+        }));
+      }
+    } else if (role === "admin") {
+      // Admin dapat melihat seluruh transaksi
+      if (filter === "all" || filter === "in") {
+        const setorList = await prisma.transaksiSetor.findMany({
+          where: {
+            ...dateFilter,
+          },
+          include: {
+            kategori: {
+              select: {
+                namaKategori: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
+
+        transaksiSetor = setorList.map((item) => ({
+          id: item.id,
+          namaKategori: item.kategori.namaKategori,
+          beratKg: item.beratKg,
+          poinMasuk: item.poinMasuk,
+          createdAt: item.createdAt,
+        }));
+      }
+
+      if (filter === "all" || filter === "out") {
+        const tukarList = await prisma.transaksiTukar.findMany({
+          where: {
+            ...dateFilter,
+          },
+          include: {
+            product: {
+              select: {
+                namaProduct: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
+
+        transaksiTukar = tukarList.map((item) => ({
+          id: item.id,
+          namaProduct: item.product.namaProduct,
+          poinKeluar: item.poinKeluar,
+          createdAt: item.createdAt,
+        }));
+      }
+    }
+
+    const transactions: Transaction[] = [
+      ...transaksiSetor.map((item) => ({
+        type: "in" as const,
+        ...item,
+      })),
+
+      ...transaksiTukar.map((item) => ({
+        type: "out" as const,
+        ...item,
+      })),
+    ];
+
+    transactions.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    const limitedTransactions = transactions.slice(0, limit);
+
+    const resultTransactions = limitedTransactions.map((item) => {
+      if (item.type === "in") {
+        return {
+          id: `setor-${item.id}`,
+          type: "masuk" as const,
+          title: `Setor ${item.namaKategori}`,
+          createdAt: item.createdAt,
+
+          dateKey: item.createdAt.toLocaleDateString("en-CA", {
+            timeZone: "Asia/Jakarta",
+          }),
+
+          monthYear: item.createdAt.toLocaleDateString("id-ID", {
+            month: "long",
+            year: "numeric",
+            timeZone: "Asia/Jakarta",
+          }),
+
+          dateLabel: item.createdAt.toLocaleDateString("id-ID", {
+            weekday: "long",
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+            timeZone: "Asia/Jakarta",
+          }),
+
+          time: `${item.createdAt.toLocaleTimeString("id-ID", {
+            hour: "2-digit",
+            minute: "2-digit",
+            timeZone: "Asia/Jakarta",
+          })} WIB`,
+
+          poin: `+${item.poinMasuk}`,
+          weight: `${item.beratKg} kg`,
+        };
+      }
+
+      return {
+        id: `tukar-${item.id}`,
+        type: "keluar" as const,
+        title: `Tukar ${item.namaProduct}`,
         createdAt: item.createdAt,
-      }));
-    }
 
-    if (filter === "all" || filter === "out") {
-      const tukarList = await prisma.transaksiTukar.findMany({
-        where: { wargaId: identifier },
-        include: {
-          product: { select: { namaProduct: true } },
-        },
-        orderBy: { createdAt: "desc" },
-        ...(limit ? { take: limit } : {}),
-      });
+        dateKey: item.createdAt.toLocaleDateString("en-CA", {
+          timeZone: "Asia/Jakarta",
+        }),
 
-      transaksiTukar = tukarList.map((item) => ({
-        namaProduct: item.product.namaProduct,
-        poinKeluar: item.poinKeluar,
-        createdAt: item.createdAt,
-      }));
-    }
+        monthYear: item.createdAt.toLocaleDateString("id-ID", {
+          month: "long",
+          year: "numeric",
+          timeZone: "Asia/Jakarta",
+        }),
 
-    if (filter === "in") {
-      transaksiTukar = null;
-    } else if (filter === "out") {
-      transaksiSetor = null;
-    }
+        dateLabel: item.createdAt.toLocaleDateString("id-ID", {
+          weekday: "long",
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+          timeZone: "Asia/Jakarta",
+        }),
+
+        time: `${item.createdAt.toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: "Asia/Jakarta",
+        })} WIB`,
+
+        poin: `-${item.poinKeluar}`,
+      };
+    });
 
     return NextResponse.json(
       {
         status: 200,
         code: "SUCCESS_GET_RIWAYAT",
         message: "Berhasil mengambil riwayat transaksi",
+
         data: {
-          transaksiSetor,
-          transaksiTukar,
+          transactions: resultTransactions,
         },
       },
-      { status: 200 }
+      { status: 200 },
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error(error);
     return NextResponse.json(
       {
         status: 500,
         code: "INTERNAL_SERVER_ERROR",
-        message: error.message || "Terjadi kesalahan pada server",
+        message: "Terjadi kesalahan pada server",
         data: null,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

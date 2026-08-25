@@ -1,63 +1,99 @@
 "use client";
 
-import CardPoin from "@/components/commons/CardPoin/CardPoin";
-import CardRiwayat from "@/components/commons/CardRiwayat/CardRiwayat";
-import { Card, CardContent } from "@/components/ui/card";
-import { QrCode } from "lucide-react";
+import { CardRiwayat } from "@/components/commons/CardRiwayat/CardRiwayat";
 import Link from "next/link";
-import { PopupQRlarge, PopupQRMobile } from "../../../commons/PopupQR/PopupQR";
 import { SessionUser } from "@/types/user";
+import { CardPoin } from "@/components/commons/CardPoin/CardPoin";
+import { useQuery } from "@tanstack/react-query";
+import instance from "@/lib/instance";
+import { TransactionItem } from "@/types/dashboard";
+import { CardRiwayatSkeleton } from "@/components/commons/CardSkeleton/CardSkeleton";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { Clock3 } from "lucide-react";
 
 const WargaDashboard = ({ user }: { user?: SessionUser }) => {
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["dashboard"],
+    queryFn: async () => {
+      const res = await instance.get("/warga/dashboard");
+      return res.data.data;
+    },
+  });
+
   return (
-    <div className="w-full min-h-screen flex flex-col gap-7">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <CardPoin />
-        <Card>
-          <CardContent className="flex flex-col items-center px-6 text-center">
-            <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-background border">
-              <QrCode size={30} strokeWidth={2} />
+    <div className="w-full max-w-3xl mx-auto flex flex-col gap-6 md:gap-8">
+      <CardPoin user={user} saldo={data.saldo} />
+
+      <Card
+        className={cn(
+          "w-full overflow-hidden rounded-2xl border-0 bg-amber-500 text-amber-950  py-2",
+          user?.statusVerifikasi ? "hidden" : "block",
+        )}
+      >
+        <CardContent className="flex items-center gap-4 px-5 md:px-6 md:py-1">
+          {/* Icon */}
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-amber-800/15">
+            <Clock3 className="size-5" />
+          </div>
+
+          {/* Content */}
+          <div className="min-w-0 flex-1 space-y-1 text-amber-950 justify-center">
+            <div className="flex flex-wrap md:justify-between  items-center gap-2">
+              <h3 className="font-semibold leading-tight">
+                Menunggu Verifikasi
+              </h3>
+
+              <span className="rounded-full bg-amber-800/15 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide">
+                Dalam Proses
+              </span>
             </div>
+          </div>
+        </CardContent>
+      </Card>
 
-            <h3 className="text-lg font-bold text-foreground">Tampilkan QR</h3>
-
-            <p className="mt-1 max-w-62.5 text-sm leading-5 text-muted-foreground">
-              Tekan dan tunjukkan QR ke petugas untuk setor sampah atau tukar
-              poin.
-            </p>
-
-            <div className="hidden md:block">
-              <PopupQRlarge />
-            </div>
-
-            <div className="block md:hidden">
-              <PopupQRMobile />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      <div className="flex flex-col gap-3">
-        <div className="flex justify-between">
-          <h3 className="font-bold text-[1.1rem]">Riwayat Terbaru</h3>
+      {/* Riwayat */}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between px-0.5">
+          <h2 className="font-bold text-lg md:text-xl text-foreground">
+            Riwayat Terbaru
+          </h2>
           <Link
             href="/warga/riwayat"
-            className="text-primary hover:underline-offset-2 hover:underline"
+            className="flex items-center gap-1 text-sm font-medium text-primary hover:underline active:scale-95 transition-transform"
           >
             Lihat Semua
           </Link>
         </div>
 
+        {/* Transaction List */}
         <div className="flex flex-col gap-3">
-          <CardRiwayat
-            title="Setor Sampah Plastik & Botol Plastik"
-            date="12 Jan 2026 | 14.00 WIB"
-            poin="+22"
-          />
-          <CardRiwayat
-            title="Tukar Beras 5Kg"
-            date="12 Jan 2026 | 15.00 WIB"
-            poin="-150"
-          />
+          {isLoading ? (
+            <div className="flex flex-col gap-2.5">
+              {[1, 2, 3].map((item) => (
+                <CardRiwayatSkeleton key={item} />
+              ))}
+            </div>
+          ) : data?.transaksi?.length > 0 ? (
+            data?.transaksi?.map((item: TransactionItem) => (
+              <CardRiwayat
+                key={item.id}
+                title={item.title}
+                date={item.time}
+                poin={item.poin}
+                weight={item.weight}
+              />
+            ))
+          ) : (
+            <div className="py-20 flex flex-col items-center justify-center gap-2 text-center text-sm">
+              <p className="font-medium text-foreground">
+                Tidak ada transaksi ditemukan
+              </p>
+              <p className="text-xs max-w-xs text-muted-foreground">
+                Belum ada riwayat transaksi saat ini
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

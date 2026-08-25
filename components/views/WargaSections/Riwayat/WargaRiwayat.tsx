@@ -1,11 +1,10 @@
 "use client";
 
-import RiwayatLayout from "@/components/layouts/RiwayatLayout/RiwatatLayout";
-import { SessionUser } from "@/types/user";
+import RiwayatLayout from "@/components/layouts/RiwayatLayout/RiwayatLayout";
 
-const WargaRiwayat = ({ user }: { user?: SessionUser }) => {
+const WargaRiwayat = () => {
   return (
-    <RiwayatLayout user={user} />
+    <RiwayatLayout />
   );
 };
 

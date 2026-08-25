@@ -54,13 +54,15 @@ export async function GET(request: Request) {
           : {}),
       },
       select: {
+        id: true,
+        image: true,
         namaProduct: true,
         hargaPoin: true,
       },
       orderBy: { id: "asc" },
     });
 
-    let data: any = {};
+    let data = {};
 
     if (role === "warga") {
       const poinWarga = await prisma.poinWarga.findUnique({
@@ -83,9 +85,7 @@ export async function GET(request: Request) {
         product: productList,
       };
     } else {
-      data = {
-        product: productList,
-      };
+      data = {}
     }
 
     return NextResponse.json(
@@ -97,13 +97,13 @@ export async function GET(request: Request) {
       },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error(error);
     return NextResponse.json(
       {
         status: 500,
         code: "INTERNAL_SERVER_ERROR",
-        message: error.message || "Terjadi kesalahan pada server",
+        message: "Terjadi kesalahan pada server",
         data: null,
       },
       { status: 500 }

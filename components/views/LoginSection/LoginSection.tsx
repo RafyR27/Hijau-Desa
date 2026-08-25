@@ -21,6 +21,7 @@ import { Spinner } from "@/components/ui/spinner";
 
 const LoginSection = () => {
   const {
+    isSuccessLogin,
     handleShowPassword,
     showPassword,
     isPendingLogin,
@@ -133,9 +134,13 @@ const LoginSection = () => {
         <Button
           type="submit"
           className="h-11 lg:h-10 w-full rounded-full cursor-pointer"
-          disabled={isPendingLogin}
+          disabled={isPendingLogin || isSuccessLogin}
         >
-          {isPendingLogin ? <Spinner className="size-4" /> : "Masuk"}
+          {isPendingLogin || isSuccessLogin ? (
+            <Spinner className="size-4" />
+          ) : (
+            "Masuk"
+          )}
         </Button>
       </form>
     </div>
