@@ -34,4 +34,29 @@ interface SessionUser {
   noRumah: string;
 }
 
-export type { IRegister, ILogin, ICompleteProfile, SessionUser, IEditProfile };
+type ProfileData = {
+  user: {
+    name: string;
+    email: string;
+    noRumah: string | null;
+    noHP: string | null;
+    image: string | null;
+    createdAt: Date;
+  };
+  poin?: {
+    saldo: number;
+  };
+  poinWarung?: {
+    saldoPoinTukarWarung: number;
+    saldoRupiah: number;
+  };
+};
+
+export type {
+  IRegister,
+  ILogin,
+  ICompleteProfile,
+  SessionUser,
+  IEditProfile,
+  ProfileData,
+};

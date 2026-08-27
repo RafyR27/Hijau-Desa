@@ -116,20 +116,12 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const tokenUpdate = await prisma.qrToken.update({
-      where: { token },
-      data: {
-        isUsed: true,
-      },
-    });
-
     return NextResponse.json(
       {
         status: 200,
         code: "SUCCESS_VERIF_TOKEN",
         message: "Token berhasil diverifikasi",
         data: {
-          isUsed: tokenUpdate.isUsed,
           user: tokenRecord.user,
         },
       },

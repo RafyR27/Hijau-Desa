@@ -1,18 +1,32 @@
 "use client";
 
 import QRScanner from "@/components/commons/QRScanner/QRScanner";
-import { SessionUser } from "@/types/user";
-import { Info, QrCode } from "lucide-react";
+import { Info } from "lucide-react";
 import { useScan } from "./useScan";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
-const PetugasScan = ({ user }: { user?: SessionUser }) => {
-  const { handleScan } = useScan();
+const PetugasScan = ({params}: {params?: string}) => {
+  const { handleScan, scannerRef } = useScan();
+
+  useEffect(() => {
+    if (params === "not-found") {
+      toast.error("Data tidak ditemukan", {
+        position: "top-right",
+      });
+    } else if (params === "server") {
+      toast.error("Terjadi kesalahan", {
+        position: "top-right",
+      });
+    }
+  }, [params]);
+  
 
   return (
     <div className="w-full max-w-lg mx-auto flex flex-col items-center gap-6 py-4">
       {/* QR Scanner Component */}
       <div className="w-full">
-        <QRScanner onScan={handleScan} />
+        <QRScanner ref={scannerRef} onScan={handleScan} />
       </div>
 
       {/* Info Card / Tips */}
