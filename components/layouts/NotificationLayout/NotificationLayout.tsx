@@ -7,7 +7,7 @@ import instance from "@/lib/instance";
 import { cn } from "@/lib/utils";
 import { INotifications } from "@/types/notification";
 import { useQuery } from "@tanstack/react-query";
-import { Package } from "lucide-react";
+import { CircleStar, Package } from "lucide-react";
 
 
 
@@ -15,7 +15,9 @@ const NotificationLayout = () => {
   const { data: notifications, isLoading: isLoadingNotifications } = useQuery({
     queryKey: ["notification"],
     queryFn: async () => {
-      const res = await instance.get("/general/notification");
+      const res = await instance.get(
+        `/general/notification?status=${"notification"}`,
+      );
       return res.data.data;
     },
   });
@@ -54,7 +56,11 @@ const NotificationLayout = () => {
             >
               <CardContent className="flex gap-3 p-3 md:p-5">
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                  <Package className="size-5" />
+                  {notification.title.includes("poin") ? (
+                    <CircleStar className="size-5" />
+                  ) : (
+                    <Package className="size-5" />
+                  )}
                 </div>
 
                 <div className="min-w-0 flex-1">
@@ -73,7 +79,7 @@ const NotificationLayout = () => {
                   </p>
                 </div>
               </CardContent>
-              {!notification.isRead && (
+              {notification.reads.length === 0 && (
                 <span className="absolute -right-1 -top-1 size-3 rounded-full bg-blue-400" />
               )}
             </Card>
@@ -82,7 +88,12 @@ const NotificationLayout = () => {
       </div>
 
       {/* Empty State */}
-      <p className={cn("text-center text-sm text-muted-foreground", notifications?.length === 0 ? "py-30" : "")}>
+      <p
+        className={cn(
+          "text-center text-sm text-muted-foreground",
+          notifications?.length === 0 ? "py-30" : "",
+        )}
+      >
         Tidak ada notifikasi lainnya
       </p>
     </div>

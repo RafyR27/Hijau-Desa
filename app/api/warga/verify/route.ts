@@ -99,6 +99,7 @@ export async function GET(req: Request) {
       user: {
         name: user.name,
         email: user.email,
+        role: user.role,
         noRumah: user.noRumah,
         noHP: user.noHP,
         image: user.image,

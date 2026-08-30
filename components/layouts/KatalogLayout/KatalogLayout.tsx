@@ -1,6 +1,6 @@
 "use client";
 
-import CardKatalog from "@/components/commons/CardKatalog/CardKatalog";
+import { CardKatalog } from "@/components/commons/CardKatalog/CardKatalog";
 import { CardPoin } from "@/components/commons/CardPoin/CardPoin";
 import { CardKatalogSkeleton } from "@/components/commons/CardSkeleton/CardSkeleton";
 import {
@@ -39,7 +39,7 @@ const KatalogLayout = ({ user }: { user?: SessionUser }) => {
     },
   });
 
-  console.log(data)
+  console.log(data);
 
   return (
     <div className="max-w-3xl mx-auto  flex flex-col gap-7">
@@ -64,7 +64,7 @@ const KatalogLayout = ({ user }: { user?: SessionUser }) => {
             <CardKatalog
               key={item.id}
               name={item.namaProduct}
-              image={item.image}
+              image={item.image || "/garbage-can.webp"}
               poin={item.hargaPoin}
             />
           ))

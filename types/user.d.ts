@@ -36,11 +36,14 @@ interface SessionUser {
 
 type ProfileData = {
   user: {
+    id?: string;
     name: string;
     email: string;
+    role: string;
     noRumah: string | null;
     noHP: string | null;
     image: string | null;
+    status?: string | null;
     createdAt: Date;
   };
   poin?: {
@@ -52,6 +55,17 @@ type ProfileData = {
   };
 };
 
+interface VerifWarga {
+  id: string;
+  name: string;
+  email: string;
+  noHP: string;
+  noRumah: string;
+  createdAt: Date;
+  statusVerifikasi: boolean;
+  rejectionReason: string;
+}
+
 export type {
   IRegister,
   ILogin,
@@ -59,4 +73,5 @@ export type {
   SessionUser,
   IEditProfile,
   ProfileData,
+  VerifWarga,
 };

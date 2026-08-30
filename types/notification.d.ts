@@ -4,8 +4,9 @@ interface INotifications {
   description: string;
   isRead: boolean;
   createdAt: Date;
+  reads: {
+    id: number;
+  }[];
 }
 
-export type {
-    INotifications
-}
+export type { INotifications };

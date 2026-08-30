@@ -20,9 +20,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SessionUser } from "@/types/user";
+import { useQuery } from "@tanstack/react-query";
+import instance from "@/lib/instance";
 
 const NavbarMain = ({ user }: { user?: SessionUser }) => {
   const route = usePathname();
+
+  const { data: notifications } = useQuery({
+    queryKey: ["notification-navbar"],
+    queryFn: async () => {
+      const res = await instance.get(
+        `/general/notification?status=${"navbar"}`,
+      );
+      return res.data.data;
+    },
+  });
 
   return (
     <div className="flex w-full items-center px-5 py-4 lg:px-20">
@@ -49,7 +61,10 @@ const NavbarMain = ({ user }: { user?: SessionUser }) => {
             className={cn(route.includes("profile") && "hidden")}
           >
             <AvatarImage
-              src={user?.image || "https://github.com/shadcn.png"}
+              src={
+                user?.image ||
+                "https://res.cloudinary.com/dejhqj1te/image/upload/v1787872501/Frame_3_ytpno7.png"
+              }
               alt={user?.name || "User"}
             />
             <AvatarFallback>
@@ -65,8 +80,12 @@ const NavbarMain = ({ user }: { user?: SessionUser }) => {
                   ? "/petugas/notification"
                   : "/warung/notification"
             }
-            className="rounded-full p-2 hover:bg-accent active:scale-90 transition-transform"
+            className="rounded-full p-2 hover:bg-accent active:scale-90 transition-transform relative"
           >
+            {notifications?.hasUnread && (
+              <span className="absolute right-0 top-0 size-3 rounded-full bg-blue-400 animate-pulse" />
+            )}
+
             <Bell size={22} strokeWidth={2} />
           </Link>
         </div>
@@ -250,4 +269,3 @@ const NavbarProfile = () => {
 };
 
 export { NavbarMain, Navbar, BottomBar, NavbarProfile };
-export type { SessionUser };

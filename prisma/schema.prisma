@@ -27,6 +27,7 @@ model Session {
   updatedAt           DateTime @updatedAt
   ipAddress           String?
   userAgent           String?
+  impersonatedBy      String?
 
   userId              String
   user                User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -78,6 +79,7 @@ model User {
   noRumah                      String?
   role                         Role     @default(warga)
   statusVerifikasi             Boolean  @default(false)
+  rejectionReason              String?
   newAccount                   Boolean  @default(true)
   createdAt                    DateTime @default(now())
   updatedAt                    DateTime @updatedAt
@@ -85,6 +87,9 @@ model User {
   // Better Auth
   sessions                     Session[]
   accounts                     Account[]
+  banned                       Boolean?  @default(false)
+	banReason                    String?
+	banExpires                   DateTime? @db.Timestamptz(3)
 
   qrTokens                     QrToken[]
   saldoPoinWarga               PoinWarga?
@@ -93,7 +98,9 @@ model User {
   transaksiSetorSebagaiPetugas TransaksiSetor[] @relation("PetugasProses")
   transaksiTukarSebagaiWarga   TransaksiTukar[] @relation("WargaTukar")
   transaksiTukarSebagaiWarung  TransaksiTukar[] @relation("WarungTerima")
-  notifications                Notification[]
+  notificationReads            NotificationRead[]
+  reimbursementsSebagaiWarung  Reimbursement[] @relation("WarungReimbursement")
+  reimbursementsDiprosesAdmin  Reimbursement[] @relation("AdminReimbursement")
 }
 
 model QrToken {
@@ -166,16 +173,50 @@ model TransaksiTukar {
 }
 
 model Notification {
-  id                     Int      @id @default(autoincrement())
-  userId                 String
-  user                   User     @relation(fields: [userId], references: [id])
-  title                  String
-  description            String
-  isRead                 Boolean  @default(false)
-  createdAt              DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+
+  reads       NotificationRead[]
+}
+
+model NotificationRead {
+  id             Int      @id @default(autoincrement())
+  notificationId Int
+  userId         String
+  isRead         Boolean
+  readAt         DateTime @default(now())
+
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationId, userId])
 }
 
 model Konfigurasi {
   id                         Int   @id @default(autoincrement())
-  ratePoinKeRupiah           Int  @default(100) // 1 poin = berapa rupiah
+  ratePoinKeRupiah           Int   @default(100)
+}
+
+model Reimbursement {
+  id              Int      @id @default(autoincrement())
+
+  warungId        String
+  warung          User     @relation("WarungReimbursement", fields: [warungId], references: [id])
+
+  jumlahPoin      Int
+  jumlahRupiah    Int
+
+  status          Boolean  @default(false)
+
+  diprosesOlehId  String?
+  diprosesOleh    User?    @relation("AdminReimbursement", fields: [diprosesOlehId], references: [id])
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([warungId])
+  @@index([status])
 }

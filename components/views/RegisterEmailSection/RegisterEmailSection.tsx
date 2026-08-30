@@ -29,6 +29,7 @@ const RegisterEmailSection = () => {
     handleSubmit,
     handleRegister,
     isPendingRegister,
+    isSuccessRegister,
   } = useRegisterEmail();
 
   return (
@@ -197,9 +198,13 @@ const RegisterEmailSection = () => {
             <Button
               type="submit"
               className="h-11 lg:h-10 w-full rounded-full cursor-pointer"
-              disabled={isPendingRegister}
+              disabled={isPendingRegister || isSuccessRegister}
             >
-              {isPendingRegister ? <Spinner className="size-4" /> : "Daftar"}
+              {isPendingRegister || isSuccessRegister ? (
+                <Spinner className="size-4" />
+              ) : (
+                "Daftar"
+              )}
             </Button>
           </form>
         </div>

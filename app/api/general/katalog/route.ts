@@ -58,6 +58,7 @@ export async function GET(request: Request) {
         image: true,
         namaProduct: true,
         hargaPoin: true,
+        isActive: true,
       },
       orderBy: { id: "asc" },
     });

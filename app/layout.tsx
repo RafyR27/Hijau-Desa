@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { TanStackProvider } from "@/providers/tanstack-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-jakarta-sans",
@@ -21,8 +22,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={cn("h-full", "antialiased", plusJakartaSans.variable)}
     >
+      <link rel="icon" href="/logo.svg" sizes="any" />
       <body className="min-h-full flex flex-col">
-        <TanStackProvider>{children}</TanStackProvider>
+        <TanStackProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+        </TanStackProvider>
         <Toaster />
       </body>
     </html>
