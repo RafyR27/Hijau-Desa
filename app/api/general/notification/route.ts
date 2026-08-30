@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { generalRateLimit } from "@/lib/rate-limit";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -41,43 +41,105 @@ export async function GET() {
       );
     }
 
-    const notifications = await prisma.notification.findMany({
-      where: { userId: identifier },
-      orderBy: { createdAt: "desc" },
-      take: 10,
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        isRead: true,
-        createdAt: true,
-      },
-    });
+    const { searchParams } = new URL(req.url);
+    const status = searchParams.get("status");
 
-    if (notifications.length > 0) {
-      await prisma.notification.updateMany({
-        where: {
-          id: {
-            in: notifications.map((notification) => notification.id),
-          },
+    if (!status) {
+      return NextResponse.json(
+        {
+          status: 400,
+          code: "BAD_REQUEST",
+          message: "Status wajib disertakan.",
+          data: null,
         },
-        data: {
-          isRead: true,
-        },
-      });
+        { status: 400 },
+      );
     }
 
-    return NextResponse.json(
-      {
-        status: 200,
-        code: "SUCCESS_GET_NOTIFICATION",
-        message: "Berhasil mengambil data notifikasi",
-        data: notifications,
-      },
-      {
-        status: 200,
-      },
-    );
+    if (status === "navbar") {
+      const unreadNotification = await prisma.notification.findFirst({
+        where: {
+          reads: {
+            none: {
+              userId: identifier,
+            },
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      const notifications = {
+        hasUnread: !!unreadNotification,
+      };
+
+      return NextResponse.json(
+        {
+          status: 200,
+          code: "SUCCESS_GET_NOTIFICATION",
+          message: "Berhasil mengambil data notifikasi",
+          data: notifications,
+        },
+        {
+          status: 200,
+        },
+      );
+    } else if (status === "notification") {
+      const notifications = await prisma.notification.findMany({
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 10,
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          createdAt: true,
+          reads: {
+            where: {
+              userId: identifier,
+            },
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+      if (notifications.length > 0) {
+        await prisma.notificationRead.createMany({
+          data: notifications.map((notification) => ({
+            notificationId: notification.id,
+            userId: identifier,
+            isRead: true,
+          })),
+          skipDuplicates: true,
+        });
+      }
+
+      return NextResponse.json(
+        {
+          status: 200,
+          code: "SUCCESS_GET_NOTIFICATION",
+          message: "Berhasil mengambil data notifikasi",
+          data: notifications,
+        },
+        {
+          status: 200,
+        },
+      );
+    } else {
+      return NextResponse.json(
+        {
+          status: 400,
+          code: "INVALID_STATUS",
+          message: "Status notifikasi tidak valid.",
+          data: null,
+        },
+        { status: 400 },
+      );
+    }
   } catch (error) {
     console.error(error);
     return NextResponse.json(

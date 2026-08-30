@@ -1,10 +1,11 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { generalRateLimit } from "@/lib/rate-limit";
+import { ProfileData } from "@/types/user";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-export async function GET(request: Request) {
+export async function GET(req: Request) {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -18,12 +19,11 @@ export async function GET(request: Request) {
           message: "Unauthorized",
           data: null,
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     const identifier = session.user.id;
-    const role = session.user.role;
     const rateLimit = await generalRateLimit.limit(identifier);
 
     if (!rateLimit.success) {
@@ -34,17 +34,51 @@ export async function GET(request: Request) {
           message: "Terlalu banyak permintaan. Silakan coba lagi nanti.",
           data: null,
         },
-        { status: 429 }
+        { status: 429 },
+      );
+    }
+
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get("idUser");
+    const token = searchParams.get("token");
+
+    if (!userId || !token) {
+      return NextResponse.json(
+        {
+          status: 400,
+          code: "INVALID_REQUEST",
+          message: "idUser dan token wajib diisi",
+          data: null,
+        },
+        { status: 400 },
+      );
+    }
+
+    const existToken = await prisma.qrToken.findUnique({
+      where: { token, isUsed: false },
+    });
+
+    if (!existToken) {
+      return NextResponse.json(
+        {
+          status: 404,
+          code: "TOKEN_NOT_FOUND",
+          message: "Token tidak ditemukan",
+          data: null,
+        },
+        { status: 404 },
       );
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: identifier },
+      where: { id: userId },
       select: {
         name: true,
         email: true,
+        role: true,
         noRumah: true,
         noHP: true,
+        image: true,
         createdAt: true,
       },
     });
@@ -57,36 +91,29 @@ export async function GET(request: Request) {
           message: "User tidak ditemukan",
           data: null,
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
-    let data: any = {
+    const data: ProfileData = {
       user: {
         name: user.name,
         email: user.email,
+        role: user.role,
         noRumah: user.noRumah,
         noHP: user.noHP,
+        image: user.image,
         createdAt: user.createdAt,
       },
     };
 
-    if (role === "warga") {
-      const poinWarga = await prisma.poinWarga.findUnique({
-        where: { userId: identifier },
-      });
-      data.poinWarga = {
-        saldo: poinWarga ? poinWarga.saldo : 0,
-      };
-    } else if (role === "warung") {
-      const poinWarung = await prisma.poinWarung.findUnique({
-        where: { userId: identifier },
-      });
-      data.poinWarung = {
-        saldoPoinTukarWarung: poinWarung ? poinWarung.saldoPoinTukarWarung : 0,
-        saldoRupiah: poinWarung ? poinWarung.saldoRupiah : 0,
-      };
-    }
+    const poinWarga = await prisma.poinWarga.findUnique({
+      where: { userId: userId },
+    });
+
+    data.poin = {
+      saldo: poinWarga?.saldo ?? 0,
+    };
 
     return NextResponse.json(
       {
@@ -95,18 +122,18 @@ export async function GET(request: Request) {
         message: "Berhasil mengambil data profile",
         data,
       },
-      { status: 200 }
+      { status: 200 },
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error(error);
     return NextResponse.json(
       {
         status: 500,
         code: "INTERNAL_SERVER_ERROR",
-        message: error.message || "Terjadi kesalahan pada server",
+        message: "Terjadi kesalahan pada server",
         data: null,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

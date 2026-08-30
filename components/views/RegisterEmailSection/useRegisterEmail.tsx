@@ -47,9 +47,20 @@ export const useRegisterEmail = () => {
   );
 
   const registerService = async (payload: IRegister) => {
-    const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      payload.name,
-    )}&background=random`;
+    const avatars = [
+      "https://res.cloudinary.com/dejhqj1te/image/upload/v1787872501/Frame_3_ytpno7.png",
+      "https://res.cloudinary.com/dejhqj1te/image/upload/v1787872500/Frame_1_f9xwi8.png",
+      "https://res.cloudinary.com/dejhqj1te/image/upload/v1787872501/Frame_8_iw25wl.png",
+      "https://res.cloudinary.com/dejhqj1te/image/upload/v1787872501/Frame_4_nphnrx.png",
+      "https://res.cloudinary.com/dejhqj1te/image/upload/v1787872501/Frame_5_gwugdj.png",
+      "https://res.cloudinary.com/dejhqj1te/image/upload/v1787872500/Frame_7_c1cmce.png",
+      "https://res.cloudinary.com/dejhqj1te/image/upload/v1787872501/Frame_9_mwwzrw.png",
+      "https://res.cloudinary.com/dejhqj1te/image/upload/v1787872501/Frame_10_x5zu4p.png",
+      "https://res.cloudinary.com/dejhqj1te/image/upload/v1787872501/Frame_6_yme7xa.png",
+      "https://res.cloudinary.com/dejhqj1te/image/upload/v1787872501/Frame_2_uypphe.png",
+    ];
+
+    const avatar = avatars[Math.floor(Math.random() * avatars.length)];
 
     const { data, error } = await signUp.email({
       name: payload.name,
@@ -65,7 +76,11 @@ export const useRegisterEmail = () => {
     return data;
   };
 
-  const { mutate: mutateRegister, isPending: isPendingRegister } = useMutation({
+  const {
+    mutate: mutateRegister,
+    isPending: isPendingRegister,
+    isSuccess: isSuccessRegister,
+  } = useMutation({
     mutationFn: registerService,
     onError(error: Error) {
       toast.error(error?.message || "Terjadi kesalahan saat mendaftar", {
@@ -86,6 +101,7 @@ export const useRegisterEmail = () => {
     control,
     handleSubmit,
     handleRegister,
+    isSuccessRegister,
     isPendingRegister,
   };
 };

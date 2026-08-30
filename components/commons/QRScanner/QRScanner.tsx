@@ -1,15 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import {
   Camera,
-  CameraOff,
   Flashlight,
   FlashlightOff,
   RefreshCw,
-  ScanLine,
   CheckCircle2,
   SwitchCamera,
   Power,
@@ -18,21 +16,31 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
-interface QRScannerProps {
+export interface QRScannerHandle {
+  resetScanner: (cooldownMs?: number) => void;
+  stopScanner: () => Promise<void>;
+  startScanner: (cameraIndex?: number) => Promise<void>;
+}
+
+export interface QRScannerProps {
   onScan: (value: string) => void;
   onError?: (error: string) => void;
   fps?: number;
   qrbox?: number;
 }
 
-export default function QRScanner({
-  onScan,
-  onError,
-  fps = 15,
-  qrbox = 250,
-}: QRScannerProps) {
+const QRScanner = forwardRef<QRScannerHandle, QRScannerProps>(function QRScanner(
+  {
+    onScan,
+    onError,
+    fps = 15,
+    qrbox = 250,
+  }: QRScannerProps,
+  ref
+) {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const isScanningRef = useRef(false);
+  const cooldownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isStarted, setIsStarted] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -42,6 +50,20 @@ export default function QRScanner({
   const [cameras, setCameras] = useState<{ id: string; label: string }[]>([]);
   const [currentCameraIndex, setCurrentCameraIndex] = useState(0);
   const [scanSuccess, setScanSuccess] = useState(false);
+
+  const resetScanner = useCallback((cooldownMs = 1000) => {
+    setScanSuccess(false);
+    if (cooldownTimeoutRef.current) {
+      clearTimeout(cooldownTimeoutRef.current);
+    }
+    if (cooldownMs > 0) {
+      cooldownTimeoutRef.current = setTimeout(() => {
+        isScanningRef.current = false;
+      }, cooldownMs);
+    } else {
+      isScanningRef.current = false;
+    }
+  }, []);
 
   const stopScanner = useCallback(async () => {
     try {
@@ -78,6 +100,9 @@ export default function QRScanner({
       setErrorMessage("");
       setScanSuccess(false);
       isScanningRef.current = false;
+      if (cooldownTimeoutRef.current) {
+        clearTimeout(cooldownTimeoutRef.current);
+      }
 
       // Stop previous instance if any
       await stopScanner();
@@ -204,11 +229,24 @@ export default function QRScanner({
     await startScanner(nextIndex);
   };
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      resetScanner,
+      stopScanner,
+      startScanner,
+    }),
+    [resetScanner, stopScanner, startScanner]
+  );
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadCameras();
 
     return () => {
+      if (cooldownTimeoutRef.current) {
+        clearTimeout(cooldownTimeoutRef.current);
+      }
       stopScanner();
     };
   }, [loadCameras, stopScanner]);
@@ -404,4 +442,6 @@ export default function QRScanner({
       </div>
     </div>
   );
-}
+});
+
+export default QRScanner;

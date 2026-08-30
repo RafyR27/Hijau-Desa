@@ -1,8 +1,9 @@
 interface KatalogItem {
-  id: string;
-  image: string;
+  id: number | string;
+  image?: string | null;
   namaProduct: string;
   hargaPoin: number;
+  isActive: boolean;
 }
 
 export type { KatalogItem };

@@ -3,8 +3,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export const CardRiwayatSkeleton = () => {
   return (
-    <Card className="rounded-xl">
-      <CardContent className="flex items-center gap-3 p-3 md:p-5">
+    <Card className="rounded-xl py-2">
+      <CardContent className="flex items-center gap-3 p-3 md:px-5">
         <Skeleton className="size-10 shrink-0 rounded-full" />
 
         <div className="flex-1 space-y-2">

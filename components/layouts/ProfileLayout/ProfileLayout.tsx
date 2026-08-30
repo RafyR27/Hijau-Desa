@@ -1,11 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import SettingsItem from "@/components/commons/SettingItem/SettingItem";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { signOut } from "@/lib/auth-client";
-import { cn } from "@/lib/utils";
 import { SessionUser } from "@/types/user";
 import {
   CircleQuestionMark,
@@ -15,25 +15,17 @@ import {
   LockKeyhole,
   LogOut,
 } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import LogoutDialog from "@/components/commons/LogoutDialog/LogoutDialog";
 
 const ProfileLayout = ({
   user,
 }: {
   user?: SessionUser;
 }) => {
-  const router = useRouter();
   const route = usePathname();
-
-  const handleSignOut = async () => {
-    await signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          router.push("/auth");
-        },
-      },
-    });
-  };
+  const [logoutOpen, setLogoutOpen] = useState(false);
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col gap-7">
@@ -90,26 +82,48 @@ const ProfileLayout = ({
             </div>
           </CardContent>
         </Card>
+
+        <Card
+          className={cn("w-full", user?.statusVerifikasi ? "block" : "hidden")}
+        >
+          <CardContent className="flex justify-around items-center text-center font-medium text-sm p-4">
+            <div>
+              Status verifikasi <br />
+              <span className="font-semibold text-emerald-500">
+                {user?.statusVerifikasi
+                  ? "Terverifikasi"
+                  : "Belum Terverifikasi"}
+              </span>
+            </div>
+            <Separator orientation="vertical" className="h-10 shrink-0" />
+            <div>
+              Role akun <br />
+              <span className="font-semibold text-emerald-500 capitalize">
+                {user?.role}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="flex flex-col gap-7 w-full lg:border lg:p-3 lg:rounded-xl">
-        {/* Akun */}
+      <div className="space-y-6 w-full">
+        {/* Account Setting */}
         <div className="space-y-3">
           <p className="px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Akun
+            Pengaturan Akun
           </p>
 
           <div className="rounded-xl overflow-hidden">
             <SettingsItem
               icon={<CircleUserRound className="size-5" />}
-              title="Profil"
-              description="Kelola informasi anda"
+              title="Edit Profile"
+              description="Ubah nama, no hp, dan alamat rumah"
               href={
                 route.includes("warga")
-                  ? "/warga/profile/edit"
+                  ? "/warga/user/profile/edit"
                   : route.includes("petugas")
-                    ? "/petugas/profile/edit"
-                    : "/warung/profile/edit"
+                    ? "/petugas/user/profile/edit"
+                    : "/admin/user/profile/edit"
               }
             />
 
@@ -117,36 +131,51 @@ const ProfileLayout = ({
 
             <SettingsItem
               icon={<LockKeyhole className="size-5" />}
-              title="Keamanan"
-              description="Password dan keamanan akun"
+              title="Keamanan & Sandi"
+              description="Ubah kata sandi akun anda"
               href={
                 route.includes("warga")
-                  ? "/warga/profile/security"
+                  ? "/warga/user/profile/security"
                   : route.includes("petugas")
-                    ? "/petugas/profile/security"
-                    : "/warung/profile/security"
+                    ? "/petugas/user/profile/security"
+                    : "/admin/user/profile/security"
+              }
+            />
+
+            <Separator />
+
+            <SettingsItem
+              icon={<Clock3 className="size-5" />}
+              title="Riwayat Penukaran"
+              description="Lihat riwayat transaksi anda"
+              href={
+                route.includes("warga")
+                  ? "/warga/user/profile/history"
+                  : route.includes("petugas")
+                    ? "/petugas/user/profile/history"
+                    : "/admin/user/profile/history"
               }
             />
           </div>
         </div>
 
-        {/* Information */}
+        {/* General */}
         <div className="space-y-3">
           <p className="px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Informasi
+            Umum
           </p>
 
           <div className="rounded-xl overflow-hidden">
             <SettingsItem
               icon={<Info className="size-5" />}
-              title="Tentang Hijau Desa"
-              description="Informasi tentang aplikasi Hijau Desa"
+              title="Tentang Aplikasi"
+              description="Informasi versi dan pengembang"
               href={
                 route.includes("warga")
-                  ? "/about-hijau-desa"
+                  ? "/about"
                   : route.includes("petugas")
-                    ? "/about-hijau-desa"
-                    : "/about-hijau-desa"
+                    ? "/about"
+                    : "/about"
               }
             />
 
@@ -175,7 +204,7 @@ const ProfileLayout = ({
 
           <div className="rounded-xl overflow-hidden">
             <SettingsItem
-              onClick={handleSignOut}
+              onClick={() => setLogoutOpen(true)}
               icon={<LogOut className="size-5 text-destructive" />}
               title="Keluar"
               destructive
@@ -183,6 +212,8 @@ const ProfileLayout = ({
           </div>
         </div>
       </div>
+
+      <LogoutDialog open={logoutOpen} onOpenChange={setLogoutOpen} />
     </div>
   );
 };

@@ -34,4 +34,44 @@ interface SessionUser {
   noRumah: string;
 }
 
-export type { IRegister, ILogin, ICompleteProfile, SessionUser, IEditProfile };
+type ProfileData = {
+  user: {
+    id?: string;
+    name: string;
+    email: string;
+    role: string;
+    noRumah: string | null;
+    noHP: string | null;
+    image: string | null;
+    status?: string | null;
+    createdAt: Date;
+  };
+  poin?: {
+    saldo: number;
+  };
+  poinWarung?: {
+    saldoPoinTukarWarung: number;
+    saldoRupiah: number;
+  };
+};
+
+interface VerifWarga {
+  id: string;
+  name: string;
+  email: string;
+  noHP: string;
+  noRumah: string;
+  createdAt: Date;
+  statusVerifikasi: boolean;
+  rejectionReason: string;
+}
+
+export type {
+  IRegister,
+  ILogin,
+  ICompleteProfile,
+  SessionUser,
+  IEditProfile,
+  ProfileData,
+  VerifWarga,
+};
