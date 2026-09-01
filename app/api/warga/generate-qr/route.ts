@@ -53,7 +53,6 @@ export async function POST() {
         token,
         userId: identifier,
         expiredAt,
-        isUsed: false,
       },
     });
 

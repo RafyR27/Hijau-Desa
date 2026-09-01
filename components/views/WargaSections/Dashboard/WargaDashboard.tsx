@@ -22,7 +22,7 @@ const WargaDashboard = ({ user }: { user?: SessionUser }) => {
   });
 
   return (
-    <div className="w-full max-w-3xl mx-auto flex flex-col gap-6 md:gap-8">
+    <div className="w-full mx-auto flex flex-col gap-6 md:gap-8">
       <CardPoin user={user} saldo={data.saldo} />
 
       <Card

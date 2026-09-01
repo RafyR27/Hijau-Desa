@@ -1,5 +1,4 @@
-import MainLayout from "@/components/layouts/MainLayout/MainLayout";
-import PetugasPenimbangan from "@/components/views/PetugasSections/Penimbangan/PetugasPenimbangan";
+import PetugasSuccess from "@/components/views/PetugasSections/Success/PetugasSuccess";
 import instance from "@/lib/instance";
 import { requireRole } from "@/lib/session";
 import axios from "axios";
@@ -11,50 +10,48 @@ export default async function PenimbanganPetugasPage({
 }: {
   searchParams: Promise<{
     token?: string;
-    id?: string;
+    wargaId?: string;
+    transaksiId?: string;
   }>;
 }) {
-  const session = await requireRole("petugas");
+  await requireRole("petugas");
 
   const cookieStore = await cookies();
 
-  const { token, id } = await searchParams;
+  const { token, wargaId, transaksiId } = await searchParams;
 
-  if (!token || !id) {
-    redirect("/petugas/scan");
+  if (!token || !wargaId || !transaksiId) {
+    redirect("/petugas/dashboard");
   }
 
-  let profile;
+  let transaksi;
 
   try {
-    const res = await instance.get("/warga/verify", {
+    const res = await instance.get("/petugas/success-verify", {
       params: {
         token,
-        idUser: id,
+        wargaId,
+        transaksiId,
       },
       headers: {
         Cookie: cookieStore.toString(),
       },
     });
 
-    profile = res.data.data;
+    transaksi = res.data.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const status = error.response?.status;
 
       if (status === 404) {
-        redirect("/petugas/scan?error=not-found");
+        redirect("/petugas/dashboard?error=not-found");
       }
     }
 
     console.error("Unexpected error:", error);
 
-    redirect("/petugas/scan?error=server");
+    redirect("/petugas/dashboard?error=server");
   }
 
-  return (
-    <MainLayout user={session.user}>
-      <PetugasPenimbangan profile={profile} token={token} wargaId={id} />
-    </MainLayout>
-  );
+  return <PetugasSuccess transaksi={transaksi}/>;
 }

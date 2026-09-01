@@ -55,7 +55,7 @@ export async function GET(req: Request) {
     }
 
     const existToken = await prisma.qrToken.findUnique({
-      where: { token, isUsed: false },
+      where: { token, status: "available" },
     });
 
     if (!existToken) {
@@ -63,7 +63,7 @@ export async function GET(req: Request) {
         {
           status: 404,
           code: "TOKEN_NOT_FOUND",
-          message: "Token tidak ditemukan",
+          message: "Token tidak ditemukan atau sudah kadaluarsa",
           data: null,
         },
         { status: 404 },
@@ -114,6 +114,13 @@ export async function GET(req: Request) {
     data.poin = {
       saldo: poinWarga?.saldo ?? 0,
     };
+
+    await prisma.qrToken.update({
+      where: { token, status: "available" },
+      data: {
+        status: "pending",
+      },
+    });
 
     return NextResponse.json(
       {
