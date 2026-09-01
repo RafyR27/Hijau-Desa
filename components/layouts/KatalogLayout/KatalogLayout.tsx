@@ -42,7 +42,7 @@ const KatalogLayout = ({ user }: { user?: SessionUser }) => {
   console.log(data);
 
   return (
-    <div className="max-w-3xl mx-auto  flex flex-col gap-7">
+    <div className="mx-auto flex flex-col gap-7">
       <CardPoin user={user} saldo={data.saldo} />
       <InputGroup className="h-10">
         <InputGroupAddon>

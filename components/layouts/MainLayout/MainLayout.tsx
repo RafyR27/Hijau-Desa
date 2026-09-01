@@ -22,16 +22,23 @@ export default function MainLayout({
     route.includes("scan") ||
     route.includes("penimbangan");
 
+  const isPetugasPage =
+    route.includes("scan") ||
+    route.includes("penimbangan");
+
   return (
     <div className="w-full min-h-screen relative">
-      {!isSubPage ? (
-        <NavbarMain user={user} />
-      ) : (
-        <Navbar user={user} />
-      )}
+      {!isSubPage ? <NavbarMain user={user} /> : <Navbar user={user} />}
 
       <div className="w-full flex justify-center">
-        <div className="px-5 pt-1 pb-25 w-full md:max-w-7xl">{children}</div>
+        <div
+          className={cn(
+            "px-5 pt-1 w-full md:max-w-3xl",
+            isPetugasPage ? "pb-3 lg:pb-25" : "pb-25",
+          )}
+        >
+          {children}
+        </div>
       </div>
 
       <div className={cn(isSubPage ? "hidden md:block" : "block")}>

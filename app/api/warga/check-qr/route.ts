@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
         {
           status: 400,
           code: "TOKEN_REQUIRED",
-          message: "Query parameter 'token' wajib disertakan",
+          message: "Token wajib disertakan",
           data: null,
         },
         {
@@ -104,7 +104,7 @@ export async function GET(req: NextRequest) {
     }
 
 
-    if (tokenRecord.isUsed) {
+    if (tokenRecord.status === "pending" || tokenRecord.status === "success") {
       return NextResponse.json(
         {
           status: 400,

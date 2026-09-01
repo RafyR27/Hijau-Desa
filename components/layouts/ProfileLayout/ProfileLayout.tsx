@@ -28,12 +28,15 @@ const ProfileLayout = ({
   const [logoutOpen, setLogoutOpen] = useState(false);
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col gap-7">
+    <div className="mx-auto flex flex-col gap-7">
       <div className="flex gap-7 items-center w-full flex-col">
         <div className="flex gap-4 items-center w-full lg:flex-col">
           <Avatar className="w-13 h-13 lg:w-15 lg:h-15">
             <AvatarImage
-              src={user?.image || "https://github.com/shadcn.png"}
+              src={
+                user?.image ||
+                "https://res.cloudinary.com/dejhqj1te/image/upload/v1787872501/Frame_3_ytpno7.png"
+              }
               alt={user?.name || "User"}
             />
             <AvatarFallback>
@@ -97,7 +100,7 @@ const ProfileLayout = ({
             </div>
             <Separator orientation="vertical" className="h-10 shrink-0" />
             <div>
-              Role akun <br />
+              Akun <br />
               <span className="font-semibold text-emerald-500 capitalize">
                 {user?.role}
               </span>
@@ -120,10 +123,10 @@ const ProfileLayout = ({
               description="Ubah nama, no hp, dan alamat rumah"
               href={
                 route.includes("warga")
-                  ? "/warga/user/profile/edit"
+                  ? "/warga/profile/edit"
                   : route.includes("petugas")
-                    ? "/petugas/user/profile/edit"
-                    : "/admin/user/profile/edit"
+                    ? "/petugas/profile/edit"
+                    : "/admin/profile/edit"
               }
             />
 
@@ -135,10 +138,10 @@ const ProfileLayout = ({
               description="Ubah kata sandi akun anda"
               href={
                 route.includes("warga")
-                  ? "/warga/user/profile/security"
+                  ? "/warga/profile/security"
                   : route.includes("petugas")
-                    ? "/petugas/user/profile/security"
-                    : "/admin/user/profile/security"
+                    ? "/petugas/profile/security"
+                    : "/admin/profile/security"
               }
             />
 
@@ -150,10 +153,10 @@ const ProfileLayout = ({
               description="Lihat riwayat transaksi anda"
               href={
                 route.includes("warga")
-                  ? "/warga/user/profile/history"
+                  ? "/warga/history"
                   : route.includes("petugas")
-                    ? "/petugas/user/profile/history"
-                    : "/admin/user/profile/history"
+                    ? "/petugas/history"
+                    : "/admin/history"
               }
             />
           </div>

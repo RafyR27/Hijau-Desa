@@ -23,7 +23,7 @@ const NotificationLayout = () => {
   });
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col gap-5">
+    <div className="mx-auto flex flex-col gap-5">
       <h1 className="text-[1.5rem] font-bold">Notifikasi</h1>
 
       {/* Notification List */}
@@ -74,7 +74,7 @@ const NotificationLayout = () => {
                     </span>
                   </div>
 
-                  <p className="mt-1 text-sm leading-4 text-muted-foreground">
+                  <p className="mt-1 text-sm leading-5 text-muted-foreground">
                     {notification.description}
                   </p>
                 </div>

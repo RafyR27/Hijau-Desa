@@ -1,152 +1,122 @@
 "use client";
 
 import instance from "@/lib/instance";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { KategoriItem } from "@/types/kategori";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
-
-export interface KategoriItem {
-  id: number;
-  namaKategori: string;
-  ratePoinPerKg: number;
-  isActive: boolean;
-}
+import * as z from "zod";
 
 interface UsePenimbanganProps {
   token?: string;
   wargaId?: string;
 }
 
+const formPenimbanganSchema = z.object({
+  kategori: z.string().min(1, "Kategori wajib diisi"),
+  berat: z
+    .number()
+    .min(0.01, "Berat minimal 0.01 kg")
+    .max(100, "Berat maksimal 100 kg"),
+});
+
+export type IFormPenimbangan = z.infer<typeof formPenimbanganSchema>;
+
 export function usePenimbangan({ token, wargaId }: UsePenimbanganProps) {
   const router = useRouter();
-  const queryClient = useQueryClient();
 
-  const [berat, setBerat] = useState<string>("");
-  const [selectedKategoriId, setSelectedKategoriId] = useState<string>("1");
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
-  const [successData, setSuccessData] = useState<{
-    poinMasuk: number;
-    beratKg: number;
-    kategoriNama: string;
-    wargaNama: string;
-  } | null>(null);
-
-  // Fetch categories from API
-  const { data: categories = [], isLoading: isLoadingCategories } = useQuery<
-    KategoriItem[]
-  >({
+  const { data: categories = [], isLoading: isLoadingCategories } = useQuery({
     queryKey: ["kategori-sampah"],
     queryFn: async () => {
-      const res = await instance.get("/petugas/penimbangan");
-      return res.data?.data || [];
+      const res = await instance.get("/petugas/kategori");
+      return res.data?.data;
     },
     staleTime: 5 * 60 * 1000,
   });
 
-  // Selected category object
-  const currentKategori = useMemo(() => {
-    if (!categories || categories.length === 0) {
-      return {
-        id: 1,
-        namaKategori: "Plastik & Botol",
-        ratePoinPerKg: 150,
-        isActive: true,
-      };
-    }
-    const found = categories.find((c) => String(c.id) === selectedKategoriId);
-    return found || categories[0];
-  }, [categories, selectedKategoriId]);
-
-  const currentRate = currentKategori?.ratePoinPerKg || 150;
-
-  // Real-time calculation of estimated points
-  const calculatedPoints = useMemo(() => {
-    const numBerat = parseFloat(berat);
-    if (isNaN(numBerat) || numBerat <= 0) return 0;
-    return Math.round(numBerat * currentRate);
-  }, [berat, currentRate]);
-
-  // Mutation to save weighing transaction
-  const { mutate: simpanPenimbangan, isPending } = useMutation({
-    mutationFn: async () => {
-      const numBerat = parseFloat(berat);
-      if (isNaN(numBerat) || numBerat <= 0) {
-        throw new Error("Masukkan berat sampah yang valid");
-      }
-      if (!wargaId) {
-        throw new Error("Data warga tidak valid");
-      }
-
-      const res = await instance.post("/petugas/penimbangan", {
-        token,
-        wargaId,
-        kategoriId: currentKategori.id,
-        beratKg: numBerat,
-      });
-
-      return res.data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["riwayat"] });
-
-      const resData = data?.data?.transaksi;
-      setSuccessData({
-        poinMasuk: resData?.poinMasuk || calculatedPoints,
-        beratKg: resData?.beratKg || parseFloat(berat),
-        kategoriNama: currentKategori.namaKategori,
-        wargaNama: resData?.warga?.name || "Warga",
-      });
-
-      toast.success(data?.message || "Penimbangan berhasil disimpan!", {
-        position: "top-right",
-      });
-
-      setIsSuccessModalOpen(true);
-    },
-    onError: (error: any) => {
-      toast.error(
-        error?.message || "Gagal menyimpan penimbangan sampah.",
-        {
-          position: "top-right",
-        }
-      );
+  const { control, handleSubmit } = useForm<IFormPenimbangan>({
+    resolver: zodResolver(formPenimbanganSchema),
+    defaultValues: {
+      kategori: "",
+      berat: 0,
     },
   });
 
-  const handleSubmit = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    simpanPenimbangan();
+  const simpanPenimbangan = async (payload: IFormPenimbangan) => {
+    const kategoriId =
+      categories.find(
+        (item: KategoriItem) => item.namaKategori === payload.kategori,
+      )?.id ?? 0;
+
+    const response = await instance.post("/petugas/timbang", {
+      wargaId,
+      kategoriSampahId: kategoriId,
+      berat: payload.berat,
+      token,
+    });
+
+    return response.data;
   };
 
-  const handleNextScan = () => {
-    setIsSuccessModalOpen(false);
-    router.push("/petugas/scan");
-  };
+  // Mutation to save weighing transaction
+  const {
+    mutate: mutateSimpanPenimbangan,
+    isPending,
+    isSuccess,
+  } = useMutation({
+    mutationFn: simpanPenimbangan,
+    onSuccess: (data) => {
+      router.push(
+        `/petugas/success?token=${token}&wargaId=${wargaId}&transaksiId=${data.data.id}`,
+      );
+    },
+    onError: (error) => {
+      toast.error(error?.message || "Gagal menyimpan penimbangan sampah.", {
+        position: "top-right",
+      });
 
-  const handleBackToDashboard = () => {
-    setIsSuccessModalOpen(false);
-    router.push("/petugas/dashboard");
-  };
+      router.push("/petugas/scan");
+    },
+  });
+
+  const handleSimpanPenimbangan = (payload: IFormPenimbangan) =>
+    mutateSimpanPenimbangan(payload);
+
+  const selectedKategori = useWatch({
+    control,
+    name: "kategori",
+  });
+
+  const berat = useWatch({
+    control,
+    name: "berat",
+  });
+
+  const currentRate =
+    categories.find(
+      (item: KategoriItem) => item.namaKategori === selectedKategori,
+    )?.ratePoinPerKg ?? 0;
+
+  const calculatedPoints = useMemo(() => {
+    const numBerat = berat;
+    if (isNaN(numBerat) || numBerat <= 0) return 0;
+    return Math.floor(numBerat * currentRate);
+  }, [berat, currentRate]);
 
   return {
     berat,
-    setBerat,
-    selectedKategoriId,
-    setSelectedKategoriId,
     categories,
     isLoadingCategories,
-    currentKategori,
     currentRate,
     calculatedPoints,
     simpanPenimbangan,
-    handleSubmit,
     isPending,
-    isSuccessModalOpen,
-    setIsSuccessModalOpen,
-    successData,
-    handleNextScan,
-    handleBackToDashboard,
+    isSuccess,
+    control,
+    handleSubmit,
+    handleSimpanPenimbangan,
   };
 }

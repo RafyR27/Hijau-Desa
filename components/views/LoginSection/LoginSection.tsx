@@ -133,7 +133,7 @@ const LoginSection = () => {
         {/* Submit */}
         <Button
           type="submit"
-          className="h-11 lg:h-10 w-full rounded-full cursor-pointer"
+          className="h-11 lg:h-10 w-full rounded-full"
           disabled={isPendingLogin || isSuccessLogin}
         >
           {isPendingLogin || isSuccessLogin ? (
