@@ -39,8 +39,6 @@ const KatalogLayout = ({ user }: { user?: SessionUser }) => {
     },
   });
 
-  console.log(data);
-
   return (
     <div className="mx-auto flex flex-col gap-7">
       <CardPoin user={user} saldo={data.saldo} />

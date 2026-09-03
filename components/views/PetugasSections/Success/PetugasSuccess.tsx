@@ -1,4 +1,4 @@
-import SuccessAnimation from "@/components/commons/SuccessAnimation/SuccessAnimation";
+import { SuccessAnimationPenimbangan } from "@/components/commons/SuccessAnimation/SuccessAnimation";
 import { Button } from "@/components/ui/button";
 import { TransaksiSetor } from "@/types/transaksiSetor";
 import Link from "next/link";
@@ -9,7 +9,7 @@ const PetugasSuccess = ({ transaksi }: { transaksi: TransaksiSetor }) => {
       <div className="w-full max-w-2xl h-screen mx-auto flex flex-col md:justify-center">
         {/* Success Illustration */}
         <div className="w-full flex-1 md:flex-0 flex items-center justify-center">
-          <SuccessAnimation />
+          <SuccessAnimationPenimbangan />
         </div>
 
         <div className="w-full min-h-[70vh] md:min-h-[50vh] bg-background rounded-t-[2.5rem] md:rounded-[2.5rem] px-8 flex flex-col justify-between items-center py-5">

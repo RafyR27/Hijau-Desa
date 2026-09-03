@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { ShoppingBag } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { MdOutlineRecycling } from "react-icons/md";
 
 interface CardRiwayatProps {
@@ -19,6 +20,7 @@ function CardRiwayat({
   className,
 }: CardRiwayatProps) {
   const isPositive = poin.includes("+");
+  const router = usePathname()
 
   return (
     <Card
@@ -29,7 +31,7 @@ function CardRiwayat({
           <div
             className={cn(
               "flex size-11 shrink-0 items-center justify-center rounded-xl text-xl",
-              isPositive
+              isPositive || router.includes("warung")
                 ? "bg-tertiary text-primary"
                 : "bg-destructive/10 text-destructive",
             )}
@@ -62,10 +64,12 @@ function CardRiwayat({
         <span
           className={cn(
             "font-bold text-base md:text-lg shrink-0 ml-3",
-            isPositive ? "text-primary" : "text-destructive",
+            isPositive || router.includes("warung")
+              ? "text-primary"
+              : "text-destructive",
           )}
         >
-          {poin}
+          {router.includes("warung") ? `${poin.replace("-", "+")}` : poin}
         </span>
       </CardContent>
     </Card>

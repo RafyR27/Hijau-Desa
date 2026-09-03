@@ -58,7 +58,7 @@ export async function GET() {
         kategori: { select: { namaKategori: true } },
       },
       orderBy: { createdAt: "desc" },
-      take: 5,
+      take: 4,
     });
 
     // 2. Hitung total sampah (kg) dan total transaksi setor yang dilayani petugas

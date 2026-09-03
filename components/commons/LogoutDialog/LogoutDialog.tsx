@@ -93,13 +93,14 @@ export default function LogoutDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <DialogFooter className="mt- flex gap-2 justify-end sm:justify-end">
+        <DialogFooter className="flex gap-2 justify-end sm:justify-end">
           <DialogClose
             render={
               <Button
                 type="button"
                 variant="outline"
                 disabled={isPending}
+                className="h-11 md:h-9"
               >
                 Batal
               </Button>
@@ -110,7 +111,7 @@ export default function LogoutDialog({
             variant="destructive"
             onClick={handleSignOut}
             disabled={isPending}
-            className="w-full md:w-20"
+            className="w-full md:w-20 h-11 md:h-9"
           >
             {isPending ? <Spinner /> : "Keluar"}
           </Button>

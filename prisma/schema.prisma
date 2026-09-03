@@ -144,7 +144,7 @@ model KategoriSampah {
 }
 
 model TransaksiSetor {
-  id                      Int      @id @default(autoincrement())
+  id                      String     @id @default(uuid())
   wargaId                 String
   warga                   User     @relation("WargaSetor", fields: [wargaId], references: [id])
   petugasId               String
@@ -163,40 +163,54 @@ model Product {
   hargaPoin               Int    
   isActive                Boolean @default(true)
 
-  transaksiTukar          TransaksiTukar[]
+  transaksiTukarDetail    TransaksiTukarDetail[]
 }
 
 model TransaksiTukar {
-  id                      Int      @id @default(autoincrement())
-  wargaId                 String
-  warga                   User     @relation("WargaTukar", fields: [wargaId], references: [id])
-  warungId                String
-  warung                  User     @relation("WarungTerima", fields: [warungId], references: [id])
-  productId               Int
-  product                 Product  @relation(fields: [productId], references: [id])
-  poinKeluar              Int
-  createdAt               DateTime @default(now())
+  id                String      @id @default(uuid())
+  wargaId           String
+  warga             User     @relation("WargaTukar", fields: [wargaId], references: [id])
+  warungId          String
+  warung            User     @relation("WarungTerima", fields: [warungId], references: [id])
+
+  totalPoin         Int
+  createdAt         DateTime @default(now())
+
+  details           TransaksiTukarDetail[]
+}
+
+model TransaksiTukarDetail {
+  id                Int            @id @default(autoincrement())
+  transaksiId       String
+  transaksi         TransaksiTukar @relation(fields: [transaksiId], references: [id])
+
+  productId         Int
+  product           Product        @relation(fields: [productId], references: [id])
+
+  qty               Int
+  poin              Int
+  createdAt         DateTime       @default(now())
 }
 
 model Notification {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  createdAt   DateTime @default(now())
+  id                Int      @id @default(autoincrement())
+  title             String
+  description       String
+  createdAt         DateTime @default(now())
 
-  reads       NotificationRead[]
+  reads             NotificationRead[]
 }
 
 model NotificationRead {
-  id             Int      @id @default(autoincrement())
-  notificationId Int
-  userId         String
-  isRead         Boolean
-  readAt         DateTime @default(now())
+id                  Int      @id @default(autoincrement())
+notificationId      Int
+userId              String
+isRead              Boolean
+readAt              DateTime @default(now())
 
-  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+notification        Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
 
-  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+user                User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([notificationId, userId])
 }

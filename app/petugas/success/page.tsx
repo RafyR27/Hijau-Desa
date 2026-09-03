@@ -5,7 +5,7 @@ import axios from "axios";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-export default async function PenimbanganPetugasPage({
+export default async function PenimbanganPetugasSuccessPage({
   searchParams,
 }: {
   searchParams: Promise<{

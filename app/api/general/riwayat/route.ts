@@ -5,7 +5,7 @@ import { Transaction } from "@/types/riwayat";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-type FilterType = "all" | "in" | "out";
+type FilterType = "all" | "in" | "out" | "reimburse";
 
 function isValidDateFormat(value: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
@@ -64,7 +64,7 @@ export async function GET(request: Request) {
 
     let limit = limitParam ? Number(limitParam) : 10;
 
-    if (!["all", "in", "out"].includes(filter)) {
+    if (!["all", "in", "out", "reimburse"].includes(filter)) {
       return NextResponse.json(
         {
           status: 400,
@@ -167,8 +167,16 @@ export async function GET(request: Request) {
           }
         : {};
 
-    let transaksiSetor: Array<{
+    let transaksiReimbursement: Array<{
       id: number;
+      jumlahPoin: number;
+      jumlahRupiah: number;
+      status: boolean;
+      createdAt: Date;
+    }> = [];
+
+    let transaksiSetor: Array<{
+      id: string;
       namaKategori: string;
       beratKg: number;
       poinMasuk: number;
@@ -176,8 +184,8 @@ export async function GET(request: Request) {
     }> = [];
 
     let transaksiTukar: Array<{
-      id: number;
-      namaProduct: string;
+      id: string;
+      products: string;
       poinKeluar: number;
       createdAt: Date;
     }> = [];
@@ -218,9 +226,9 @@ export async function GET(request: Request) {
             ...dateFilter,
           },
           include: {
-            product: {
-              select: {
-                namaProduct: true,
+            details: {
+              include: {
+                product: true,
               },
             },
           },
@@ -231,8 +239,10 @@ export async function GET(request: Request) {
 
         transaksiTukar = tukarList.map((item) => ({
           id: item.id,
-          namaProduct: item.product.namaProduct,
-          poinKeluar: item.poinKeluar,
+          products: item.details
+            .map((detail) => detail.product.namaProduct)
+            .join(", "),
+          poinKeluar: item.totalPoin,
           createdAt: item.createdAt,
         }));
       }
@@ -265,17 +275,17 @@ export async function GET(request: Request) {
         }));
       }
     } else if (role === "warung") {
-      // Warung melayani transaksi penukaran barang dari warga
-      if (filter === "all" || filter === "out" || filter === "in") {
+      // Warung: transaksi penukaran (poin masuk) + pencairan dana (reimburse)
+      if (filter === "all" || filter === "in") {
         const tukarList = await prisma.transaksiTukar.findMany({
           where: {
             warungId: identifier,
             ...dateFilter,
           },
           include: {
-            product: {
-              select: {
-                namaProduct: true,
+            details: {
+              include: {
+                product: true,
               },
             },
           },
@@ -286,60 +296,30 @@ export async function GET(request: Request) {
 
         transaksiTukar = tukarList.map((item) => ({
           id: item.id,
-          namaProduct: item.product.namaProduct,
-          poinKeluar: item.poinKeluar,
+          products: item.details
+            .map((detail) => detail.product.namaProduct)
+            .join(", "),
+          poinKeluar: item.totalPoin,
           createdAt: item.createdAt,
         }));
       }
-    } else if (role === "admin") {
-      // Admin dapat melihat seluruh transaksi
-      if (filter === "all" || filter === "in") {
-        const setorList = await prisma.transaksiSetor.findMany({
+
+      if (filter === "all" || filter === "reimburse") {
+        const reimbList = await prisma.reimbursement.findMany({
           where: {
+            warungId: identifier,
             ...dateFilter,
-          },
-          include: {
-            kategori: {
-              select: {
-                namaKategori: true,
-              },
-            },
           },
           orderBy: {
             createdAt: "desc",
           },
         });
 
-        transaksiSetor = setorList.map((item) => ({
+        transaksiReimbursement = reimbList.map((item) => ({
           id: item.id,
-          namaKategori: item.kategori.namaKategori,
-          beratKg: item.beratKg,
-          poinMasuk: item.poinMasuk,
-          createdAt: item.createdAt,
-        }));
-      }
-
-      if (filter === "all" || filter === "out") {
-        const tukarList = await prisma.transaksiTukar.findMany({
-          where: {
-            ...dateFilter,
-          },
-          include: {
-            product: {
-              select: {
-                namaProduct: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        });
-
-        transaksiTukar = tukarList.map((item) => ({
-          id: item.id,
-          namaProduct: item.product.namaProduct,
-          poinKeluar: item.poinKeluar,
+          jumlahPoin: item.jumlahPoin,
+          jumlahRupiah: item.jumlahRupiah,
+          status: item.status,
           createdAt: item.createdAt,
         }));
       }
@@ -398,10 +378,45 @@ export async function GET(request: Request) {
         };
       }
 
+      if (role === "warung") {
+        return {
+          id: `tukar-${item.id}`,
+          type: "masuk" as const,
+          title: `Penukaran ${item.products}`,
+          createdAt: item.createdAt,
+
+          dateKey: item.createdAt.toLocaleDateString("en-CA", {
+            timeZone: "Asia/Jakarta",
+          }),
+
+          monthYear: item.createdAt.toLocaleDateString("id-ID", {
+            month: "long",
+            year: "numeric",
+            timeZone: "Asia/Jakarta",
+          }),
+
+          dateLabel: item.createdAt.toLocaleDateString("id-ID", {
+            weekday: "long",
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+            timeZone: "Asia/Jakarta",
+          }),
+
+          time: `${item.createdAt.toLocaleTimeString("id-ID", {
+            hour: "2-digit",
+            minute: "2-digit",
+            timeZone: "Asia/Jakarta",
+          })} WIB`,
+
+          poin: `+${item.poinKeluar}`,
+        };
+      }
+
       return {
         id: `tukar-${item.id}`,
         type: "keluar" as const,
-        title: `Tukar ${item.namaProduct}`,
+        title: `Tukar ${item.products}`,
         createdAt: item.createdAt,
 
         dateKey: item.createdAt.toLocaleDateString("en-CA", {
@@ -432,6 +447,46 @@ export async function GET(request: Request) {
       };
     });
 
+    // Gabungkan reimbursement warung ke dalam hasil jika ada
+    const reimbursementResults = transaksiReimbursement.map((item) => ({
+      id: `reimb-${item.id}`,
+      type: "reimburse" as const,
+      title: "Pencairan Dana",
+      createdAt: item.createdAt,
+
+      dateKey: item.createdAt.toLocaleDateString("en-CA", {
+        timeZone: "Asia/Jakarta",
+      }),
+
+      monthYear: item.createdAt.toLocaleDateString("id-ID", {
+        month: "long",
+        year: "numeric",
+        timeZone: "Asia/Jakarta",
+      }),
+
+      dateLabel: item.createdAt.toLocaleDateString("id-ID", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        timeZone: "Asia/Jakarta",
+      }),
+
+      time: `${item.createdAt.toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Asia/Jakarta",
+      })} WIB`,
+
+      poin: `-Rp ${item.jumlahRupiah.toLocaleString("id-ID")}`,
+      reimbursementStatus: item.status,
+    }));
+
+    // Gabung semua, urutkan ulang berdasarkan tanggal
+    const allResults = [...resultTransactions, ...reimbursementResults]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, limit);
+
     return NextResponse.json(
       {
         status: 200,
@@ -439,7 +494,7 @@ export async function GET(request: Request) {
         message: "Berhasil mengambil riwayat transaksi",
 
         data: {
-          transactions: resultTransactions,
+          transactions: allResults,
         },
       },
       { status: 200 },

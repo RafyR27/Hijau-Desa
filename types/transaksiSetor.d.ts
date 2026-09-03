@@ -1,5 +1,5 @@
 interface TransaksiSetor {
-  transaksiId: number;
+  transaksiId: string;
   namaWarga: string;
   kategoriSampah: string;
   beratSampah: number;

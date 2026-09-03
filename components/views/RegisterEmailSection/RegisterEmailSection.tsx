@@ -48,7 +48,7 @@ const RegisterEmailSection = () => {
           <Button
             type="button"
             variant="link"
-            className="self-start flex gap-2 font-medium pb-5 px-0"
+            className="self-start flex gap-2 font-medium pb-5 px-0 active:scale-90"
             nativeButton={false}
             render={<Link href="/auth" />}
           >

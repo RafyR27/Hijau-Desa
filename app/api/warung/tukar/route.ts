@@ -9,6 +9,8 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { KatalogItem } from "@/types/katalog";
+import { userRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   try {
@@ -16,12 +18,41 @@ export async function POST(req: Request) {
       headers: await headers(),
     });
 
-    if (!session || session.user.role !== "warung") {
+    if (!session) {
       return NextResponse.json(
         {
-          status: false,
-          code: 403,
-          message: "Akses ditolak. Khusus mitra warung",
+          status: 401,
+          code: "UNAUTHORIZED",
+          message: "Unauthorized",
+          data: null,
+        },
+        { status: 401 },
+      );
+    }
+
+    const identifier = session.user.id;
+    const role = session.user.role;
+
+    const rateLimit = await userRateLimit.limit(identifier);
+
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        {
+          status: 429,
+          code: "RATE_LIMIT_EXCEEDED",
+          message: "Terlalu banyak permintaan. Silakan coba lagi nanti.",
+          data: null,
+        },
+        { status: 429 },
+      );
+    }
+
+    if (role !== "warung") {
+      return NextResponse.json(
+        {
+          status: 403,
+          code: "FORBIDDEN",
+          message: "Akses ditolak",
           data: null,
         },
         { status: 403 },
@@ -32,31 +63,54 @@ export async function POST(req: Request) {
     const {
       wargaId,
       items,
-    }: { wargaId: string; items: Array<{ productId: any; qty: number }> } =
-      body;
+      token,
+    }: {
+      wargaId: string;
+      items: Array<{ item: KatalogItem; qty: number }>;
+      token: string;
+    } = body;
 
-    if (!wargaId || !Array.isArray(items) || items.length === 0) {
+    if (!wargaId || !Array.isArray(items) || items.length === 0 || !token) {
       return NextResponse.json(
         {
-          status: false,
-          code: 400,
-          message: "Daftar barang tidak boleh kosong",
+          status: 400,
+          code: "INVALID_DATA",
+          message: "Input data penukaran tidak valid",
           data: null,
         },
         { status: 400 },
       );
     }
 
-    const productIds = items.map((i) => parseInt(String(i.productId)));
-    const products: any[] = await prisma.product.findMany({
-      where: { id: { in: productIds } },
+    const exToken = await prisma.qrToken.findFirst({
+      where: {
+        token,
+        status: "success",
+      },
     });
 
-    if (products.length !== items.length) {
+    if (exToken) {
       return NextResponse.json(
         {
-          status: false,
-          code: 400,
+          status: 409,
+          code: "TOKEN_ALREDY_USED",
+          message: "Token sudah digunakan",
+          data: null,
+        },
+        { status: 409 },
+      );
+    }
+
+    const productIds = items.map((item) => Number(item.item.id));
+    const products = await prisma.product.findMany({
+      where: { id: { in: productIds }, isActive: true },
+    });
+
+    if (products.length !== new Set(productIds).size) {
+      return NextResponse.json(
+        {
+          status: 400,
+          code: "PRODUCT_INVALID",
           message: "Beberapa produk tidak valid atau nonaktif",
           data: null,
         },
@@ -64,11 +118,26 @@ export async function POST(req: Request) {
       );
     }
 
+    const invalidQty = items.some(
+      (item) => !Number.isInteger(item.qty) || item.qty <= 0,
+    );
+
+    if (invalidQty) {
+      return NextResponse.json(
+        {
+          status: 400,
+          code: "INVALID_QTY",
+          message: "Jumlah barang tidak valid",
+          data: null,
+        },
+        { status: 400 },
+      );
+    }
+
     let totalPoinDibutuhkan = 0;
+
     const itemsSummary = items.map((item) => {
-      const prod = products.find(
-        (p: any) => p.id === parseInt(String(item.productId)),
-      )!;
+      const prod = products.find((p) => p.id === item.item.id)!;
       const subtotalPoin = prod.hargaPoin * item.qty;
       totalPoinDibutuhkan += subtotalPoin;
       return {
@@ -79,13 +148,26 @@ export async function POST(req: Request) {
       };
     });
 
-    const config = await (prisma as any).konfigurasi?.findFirst?.();
-    const rateKonversi = config?.ratePoinKeRupiah ?? 100;
+    const config = await prisma.konfigurasi?.findFirst?.();
+
+    if (!config) {
+      return NextResponse.json(
+        {
+          status: 404,
+          code: "KONFIGURASI_NOT_FOUND",
+          message: "Konfigurasi tidak ditemukan",
+          data: null,
+        },
+        { status: 404 },
+      );
+    }
+
+    const rateKonversi = config.ratePoinKeRupiah;
     const totalRupiahWarung = totalPoinDibutuhkan * rateKonversi;
 
-    const result: any = await prisma.$transaction(async (tx: any) => {
+    const result = await prisma.$transaction(async (tx) => {
       const poinWarga = await tx.poinWarga.findUnique({
-        where: { userId: String(wargaId) },
+        where: { userId: wargaId },
       });
 
       if (!poinWarga || poinWarga.saldo < totalPoinDibutuhkan) {
@@ -93,7 +175,7 @@ export async function POST(req: Request) {
       }
 
       const updatedPoinWarga = await tx.poinWarga.update({
-        where: { userId: String(wargaId) },
+        where: { userId: wargaId },
         data: { saldo: { decrement: totalPoinDibutuhkan } },
       });
 
@@ -104,56 +186,82 @@ export async function POST(req: Request) {
           saldoRupiah: { increment: totalRupiahWarung },
         },
         create: {
-          userId: session.user.id,
+          userId: identifier,
           saldoPoinTukarWarung: totalPoinDibutuhkan,
           saldoRupiah: totalRupiahWarung,
         },
       });
 
+      const transkasiTukar = await tx.transaksiTukar.create({
+        data: {
+          wargaId,
+          warungId: identifier,
+          totalPoin: totalPoinDibutuhkan,
+        },
+      });
+
       for (const item of items) {
-        const prod = products.find(
-          (p: any) => p.id === parseInt(String(item.productId)),
-        )!;
-        for (let i = 0; i < item.qty; i++) {
-          await tx.transaksiTukar.create({
-            data: {
-              wargaId: String(wargaId),
-              warungId: session.user.id,
-              productId: prod.id,
-              poinKeluar: prod.hargaPoin,
-            },
-          });
-        }
+        const prod = products.find((p) => p.id === Number(item.item.id))!;
+
+        await tx.transaksiTukarDetail.create({
+          data: {
+            transaksiId: transkasiTukar.id,
+            productId: prod.id,
+            qty: item.qty,
+            poin: prod.hargaPoin * item.qty,
+          },
+        });
       }
 
       const warga = await tx.user.findUnique({
-        where: { id: String(wargaId) },
+        where: { id: wargaId },
       });
 
       return {
-        namaWarga: warga?.name || "-",
+        transaksiId: transkasiTukar.id,
+        wargaId: warga?.id,
         sisaSaldo: updatedPoinWarga.saldo,
+        createdAt: transkasiTukar.createdAt,
       };
     });
 
-    return NextResponse.json({
-      status: true,
-      code: 201,
-      message: "Penukaran barang berhasil diproses",
-      data: {
-        namaWarga: result.namaWarga,
-        totalPotonganPoin: totalPoinDibutuhkan,
-        sisaSaldoWarga: result.sisaSaldo,
-        items: itemsSummary,
-        createdAt: new Date(),
+    if (result) {
+      await prisma.qrToken.update({
+        where: {
+          token,
+        },
+        data: {
+          status: "success",
+        },
+      });
+    }
+
+    return NextResponse.json(
+      {
+        status: 201,
+        code: "SUCCESS_CREATE_TRANSAKSI_TUKAR",
+        message: "Penukaran barang berhasil diproses",
+        data: {
+          transaksiId: result.transaksiId,
+          wargaId: result.wargaId,
+          totalPotonganPoin: totalPoinDibutuhkan,
+          sisaSaldoWarga: result.sisaSaldo,
+          items: itemsSummary,
+          createdAt: result.createdAt,
+        },
       },
-    });
-  } catch (error: any) {
-    if (error.message === "INSUFFICIENT_BALANCE") {
+      {
+        status: 201,
+      },
+    );
+  } catch (error) {
+    const err = error as Error;
+
+    if (err.message === "INSUFFICIENT_BALANCE") {
       return NextResponse.json(
         {
-          status: false,
-          code: 400,
+          status: 400,
+          code: "INSUFFICIENT_BALANCE",
           message: "Saldo poin warga tidak mencukupi",
           data: null,
         },
@@ -163,8 +271,8 @@ export async function POST(req: Request) {
     console.error("TUKAR_WARUNG_ERROR:", error);
     return NextResponse.json(
       {
-        status: false,
-        code: 500,
+        status: 500,
+        code: "INTERNAL_SERVER_ERROR",
         message: "Internal server error",
         data: null,
       },

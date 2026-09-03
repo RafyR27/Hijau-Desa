@@ -126,7 +126,9 @@ const ProfileLayout = ({
                   ? "/warga/profile/edit"
                   : route.includes("petugas")
                     ? "/petugas/profile/edit"
-                    : "/admin/profile/edit"
+                    : route.includes("warung")
+                      ? "/warung/profile/edit"
+                      : "/admin/profile/edit"
               }
             />
 
@@ -141,7 +143,9 @@ const ProfileLayout = ({
                   ? "/warga/profile/security"
                   : route.includes("petugas")
                     ? "/petugas/profile/security"
-                    : "/admin/profile/security"
+                    : route.includes("warung")
+                      ? "/warung/profile/security"
+                      : "/admin/profile/security"
               }
             />
 
@@ -149,14 +153,16 @@ const ProfileLayout = ({
 
             <SettingsItem
               icon={<Clock3 className="size-5" />}
-              title="Riwayat Penukaran"
+              title="Riwayat"
               description="Lihat riwayat transaksi anda"
               href={
                 route.includes("warga")
-                  ? "/warga/history"
+                  ? "/warga/riwayat"
                   : route.includes("petugas")
-                    ? "/petugas/history"
-                    : "/admin/history"
+                    ? "/petugas/riwayat"
+                    : route.includes("warung")
+                      ? "/warung/riwayat"
+                      : "/admin/riwayat"
               }
             />
           </div>

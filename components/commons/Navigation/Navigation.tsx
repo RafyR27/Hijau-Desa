@@ -179,9 +179,12 @@ const BottomBar = ({ user }: { user?: SessionUser }) => {
         </Link>
 
         {/* QR Code */}
-        {route.includes("petugas") || user?.role === "petugas" ? (
+        {route.includes("petugas") ||
+        user?.role === "petugas" ||
+        route.includes("warung") ||
+        user?.role === "warung" ? (
           <Link
-            href="/petugas/scan"
+            href={user?.role === "petugas" ? "/petugas/scan" : "/warung/scan"}
             className="p-3.5 md:p-3 -translate-y-5 md:translate-y-0 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground text-center transition-transform active:scale-95 flex items-center justify-center"
           >
             <ScanLine className="size-7 md:size-6" strokeWidth={2} />

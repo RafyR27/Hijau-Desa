@@ -34,7 +34,12 @@ function CardPoin({ user, saldo }: { user?: SessionUser; saldo: number }) {
         )}
       >
         {/* Top bar: Date & Badge */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div
+          className={cn(
+            "sm:flex-row sm:items-center sm:justify-between gap-2",
+            path.includes("katalog") ? "hidden" : "flex flex-col",
+          )}
+        >
           <div>
             <p className="text-xs uppercase tracking-wider text-primary-foreground/70">
               {today}
@@ -48,20 +53,37 @@ function CardPoin({ user, saldo }: { user?: SessionUser; saldo: number }) {
         {/* Bottom bar: Point Balance & Single QR Trigger */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5">
           <div>
-            <span className="text-xs text-primary-foreground/75 block">
-              Total Saldo Poin
-            </span>
-            <div className="flex items-center gap-2.5 mt-1">
-              <CircleStar
-                className="size-7 md:size-8 text-primary-foreground shrink-0"
-                strokeWidth={1.8}
-              />
-              <span className="text-3xl md:text-4xl font-bold tracking-tight">
-                {saldo ? saldo?.toLocaleString("id-ID") : 0}
+            <div>
+              <span className="text-xs text-primary-foreground/75 block">
+                Total Saldo Poin {path.includes("warung") && "Warung"}
               </span>
-              <span className="text-sm text-primary-foreground/75 font-medium">
-                poin
+              <div className="flex items-center gap-2.5 mt-1">
+                <CircleStar
+                  className="size-7 md:size-8 text-primary-foreground shrink-0"
+                  strokeWidth={1.8}
+                />
+                <span className="text-3xl md:text-4xl font-bold tracking-tight">
+                  {saldo ? saldo?.toLocaleString("id-ID") : 0}
+                </span>
+                <span className="text-sm text-primary-foreground/75 font-medium">
+                  poin
+                </span>
+              </div>
+            </div>
+
+            <div
+              className={cn(
+                path.includes("/warung/dashboard") ? "block mt-4" : "hidden",
+              )}
+            >
+              <span className="text-xs text-primary-foreground/75 block">
+                Pengajuan Dana
               </span>
+              <div className="flex items-center gap-2.5 mt-1">
+                <span className="text-lg md:text-lg font-medium tracking-tight">
+                  Rp. {saldo ? saldo?.toLocaleString("id-ID") : 0}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -121,7 +143,11 @@ function CardPetugas({ user }: { user?: SessionUser }) {
               path.includes("dashboard") ? "block" : "hidden",
             )}
           >
-            <Button className="w-full sm:w-auto gap-2.5 rounded-xl bg-background text-primary hover:bg-background/90 hover:text-primary font-semibold shadow-sm h-11 px-6 active:scale-95 transition-all" render={<Link href={"/petugas/scan"} />} nativeButton={false}>
+            <Button
+              className="w-full sm:w-auto gap-2.5 rounded-xl bg-background text-primary hover:bg-background/90 hover:text-primary font-semibold shadow-sm h-11 px-6 active:scale-95 transition-all"
+              render={<Link href={"/petugas/scan"} />}
+              nativeButton={false}
+            >
               <ScanLine className="size-5" />
               <span>Scan QR</span>
             </Button>
@@ -132,7 +158,4 @@ function CardPetugas({ user }: { user?: SessionUser }) {
   );
 }
 
-export {
-  CardPoin,
-  CardPetugas,
-};
+export { CardPoin, CardPetugas };
