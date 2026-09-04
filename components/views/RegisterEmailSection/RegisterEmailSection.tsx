@@ -48,7 +48,7 @@ const RegisterEmailSection = () => {
           <Button
             type="button"
             variant="link"
-            className="self-start flex gap-2 font-medium pb-5 px-0"
+            className="self-start flex gap-2 font-medium pb-5 px-0 active:scale-90"
             nativeButton={false}
             render={<Link href="/auth" />}
           >
@@ -81,6 +81,7 @@ const RegisterEmailSection = () => {
                       type="text"
                       placeholder="Masukkan nama lengkap"
                       className="rounded-lg px-5 bg-background h-11 lg:h-9"
+                      disabled={isPendingRegister || isSuccessRegister}
                     />
                   </FieldContent>
 
@@ -106,6 +107,7 @@ const RegisterEmailSection = () => {
                       type="text"
                       placeholder="Masukkan email"
                       className="rounded-lg px-5 bg-background h-11 lg:h-9"
+                      disabled={isPendingRegister || isSuccessRegister}
                     />
                   </FieldContent>
 
@@ -147,6 +149,7 @@ const RegisterEmailSection = () => {
                           type={showPassword ? "text" : "password"}
                           placeholder="Masukkan kata sandi"
                           className="px-5 "
+                          disabled={isPendingRegister || isSuccessRegister}
                         />
                         <InputGroupAddon align="inline-end">
                           <button

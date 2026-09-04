@@ -16,7 +16,7 @@ export async function proxy(request: NextRequest) {
     headers: request.headers,
   });
 
-  if (pathname === "/auth" || pathname === "/auth/register-email") {
+  if (pathname === "/auth" || pathname === "/auth/register-email" || pathname === "/auth/forgot-password" || pathname === "/auth/forgot-password" || pathname === "/auth/reset-password") {
     if (session) {
       const dashboard =
         roleDashboardMap[session.user.role as string] || "/warga/dashboard";

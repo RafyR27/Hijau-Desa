@@ -22,9 +22,11 @@ import Image from "next/image";
 
 export function AppSidebar({
   user,
+  onLogout,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   user?: SessionUser;
+  onLogout?: () => void;
 }) {
   const DATA = SIDEBAR_ADMIN;
 
@@ -49,7 +51,7 @@ export function AppSidebar({
         <NavTools items={DATA?.tools} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser user={user} onLogout={onLogout} />
       </SidebarFooter>
     </Sidebar>
   );

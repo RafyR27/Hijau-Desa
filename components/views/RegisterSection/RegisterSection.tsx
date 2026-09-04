@@ -5,9 +5,15 @@ import { Button } from "@/components/ui/button";
 import { FcGoogle } from "react-icons/fc";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { signIn } from "@/lib/auth-client";
 
 const RegisterSection = () => {
-  
+  const handleGoogle = async () => {
+    await signIn.social({
+      provider: "google",
+      callbackURL: "/warga/dashboard",
+    });
+  };
 
   return (
     <div>
@@ -16,6 +22,7 @@ const RegisterSection = () => {
           type="button"
           variant={"outline"}
           className="w-full h-10 rounded-lg text-sm font-medium flex gap-3 cursor-pointer border-primary/50 border-2"
+          onClick={handleGoogle}
         >
           <FcGoogle />
           Daftar dengan Google
@@ -45,8 +52,6 @@ const RegisterSection = () => {
           Daftar dengan Email
         </Button>
       </div>
-
-      
     </div>
   );
 };

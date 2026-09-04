@@ -1,4 +1,4 @@
-type RiwayatFilter = "all" | "in" | "out";
+type RiwayatFilter = "all" | "in" | "out" | "reimburse";
 
 interface TransactionItem {
   id: string;
@@ -11,12 +11,13 @@ interface TransactionItem {
   poin: string;
   weight?: string;
   status: string;
+  reimbursementStatus?: boolean;
 }
 
 type Transaction =
   | {
       type: "in";
-      id: number;
+      id: string;
       namaKategori: string;
       beratKg: number;
       poinMasuk: number;
@@ -24,10 +25,11 @@ type Transaction =
     }
   | {
       type: "out";
-      id: number;
-      namaProduct: string;
+      id: string;
+      products: string;
       poinKeluar: number;
       createdAt: Date;
     };
 
-export type { RiwayatFilter, TransactionItem, Transaction };
+
+export type { RiwayatFilter, TransactionItem, Transaction};

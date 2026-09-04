@@ -76,7 +76,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const exToken = await prisma.qrToken.findUnique({
+    const exToken = await prisma.qrToken.findFirst({
       where:{
         token,
         status: "success"

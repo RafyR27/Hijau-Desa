@@ -95,7 +95,9 @@ export async function GET(req: Request) {
 
     const result = await prisma.transaksiSetor.findFirst({
       where: {
-        id: Number(transaksiId),
+        id: transaksiId,
+        wargaId,
+        petugasId: identifier,
       },
       include: {
         warga: true,
@@ -118,8 +120,8 @@ export async function GET(req: Request) {
     return NextResponse.json(
       {
         status: 200,
-        code: "SUCCESS_GET_KATEGORI",
-        message: "Berhasil mengambil data kategori sampah",
+        code: "SUCCESS_GET_TRANSACTION",
+        message: "Berhasil mengambil data transaksi",
         data: {
           transaksiId: result.id,
           namaWarga: result.warga?.name,

@@ -6,7 +6,7 @@ export default async function ProfileWarga() {
   const session = await requireRole("warga");
 
   return (
-    <MainLayout>
+    <MainLayout user={session.user}>
       <WargaProfile user={session.user} />
     </MainLayout>
   );

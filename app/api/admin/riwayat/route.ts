@@ -1,8 +1,49 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@/lib/generated/prisma/client";
 import { adminRateLimit } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+
+type TransaksiSetorQuery = Prisma.TransaksiSetorGetPayload<{
+  include: {
+    warga: {
+      select: {
+        name: true;
+      };
+    };
+    petugas: {
+      select: {
+        name: true;
+      };
+    };
+    kategori: {
+      select: {
+        namaKategori: true;
+      };
+    };
+  };
+}>;
+
+type TransaksiTukarQuery = Prisma.TransaksiTukarGetPayload<{
+  include: {
+    warga: {
+      select: {
+        name: true;
+      };
+    };
+    warung: {
+      select: {
+        name: true;
+      };
+    };
+    details: {
+      include: {
+        product: true;
+      };
+    };
+  };
+}>;
 
 export async function GET(request: Request) {
   try {
@@ -18,7 +59,7 @@ export async function GET(request: Request) {
           message: "Unauthorized",
           data: null,
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -30,7 +71,7 @@ export async function GET(request: Request) {
           message: "Akses ditolak. Khusus admin.",
           data: null,
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -45,7 +86,7 @@ export async function GET(request: Request) {
           message: "Terlalu banyak permintaan. Silakan coba lagi nanti.",
           data: null,
         },
-        { status: 429 }
+        { status: 429 },
       );
     }
 
@@ -58,8 +99,8 @@ export async function GET(request: Request) {
     const config = await prisma.konfigurasi.findFirst();
     const rateRupiah = config ? config.ratePoinKeRupiah : 100;
 
-    let transaksiSetorList: any[] = [];
-    let transaksiTukarList: any[] = [];
+    let transaksiSetorList: TransaksiSetorQuery[] = [];
+    let transaksiTukarList: TransaksiTukarQuery[] = [];
 
     if (filter === "Semua" || filter === "Setor") {
       transaksiSetorList = await prisma.transaksiSetor.findMany({
@@ -67,7 +108,9 @@ export async function GET(request: Request) {
           ? {
               OR: [
                 { warga: { name: { contains: search, mode: "insensitive" } } },
-                { petugas: { name: { contains: search, mode: "insensitive" } } },
+                {
+                  petugas: { name: { contains: search, mode: "insensitive" } },
+                },
               ],
             }
           : undefined,
@@ -93,7 +136,11 @@ export async function GET(request: Request) {
         include: {
           warga: { select: { name: true } },
           warung: { select: { name: true } },
-          product: { select: { namaProduct: true } },
+          details: {
+            include: {
+              product: true,
+            },
+          },
         },
         orderBy: { createdAt: "desc" },
       });
@@ -115,17 +162,23 @@ export async function GET(request: Request) {
       jenis: "tukar",
       warga: item.warga.name,
       anggota: item.warung.name,
-      detailItem: item.product.namaProduct,
-      poin: `-${item.poinKeluar}`,
-      amountRupiah: item.poinKeluar * rateRupiah,
+      detailItem: item.details
+        .map((detail) => detail.product.namaProduct)
+        .join(", "),
+      poin: `-${item.totalPoin}`,
+      amountRupiah: item.totalPoin * rateRupiah,
       createdAt: item.createdAt,
     }));
 
-    let combined = [...formattedSetor, ...formattedTukar].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    const combined = [...formattedSetor, ...formattedTukar].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
 
-    const paginated = combined.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize);
+    const paginated = combined.slice(
+      pageIndex * pageSize,
+      (pageIndex + 1) * pageSize,
+    );
 
     return NextResponse.json(
       {
@@ -138,17 +191,18 @@ export async function GET(request: Request) {
           pageSize,
         },
       },
-      { status: 200 }
+      { status: 200 },
     );
-  } catch (error: any) {
+  } catch (error) {
+    console.error(error);
     return NextResponse.json(
       {
         status: 500,
         code: "INTERNAL_SERVER_ERROR",
-        message: error.message,
+        message: "Terjadi kesalahan pada server",
         data: null,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

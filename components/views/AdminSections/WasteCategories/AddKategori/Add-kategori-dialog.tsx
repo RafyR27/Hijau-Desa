@@ -144,7 +144,7 @@ const AddKategoriDialog = ({ open, onOpenChange }: AddKategoriDialogProps) => {
             <Button
               type="submit"
               disabled={isPendingAddKategori}
-              className="w-35"
+              className="md:w-35 w-full"
             >
               {isPendingAddKategori ? <Spinner /> : "Tambah Kategori"}
             </Button>

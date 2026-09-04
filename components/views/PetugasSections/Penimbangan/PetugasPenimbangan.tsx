@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ProfileData } from "@/types/user";
-import { Plus, Save } from "lucide-react";
+import { Plus } from "lucide-react";
 import { usePenimbangan } from "./usePenimbangan";
 import { Spinner } from "@/components/ui/spinner";
 import { KategoriItem } from "@/types/kategori";
@@ -104,7 +104,7 @@ const PetugasPenimbangan = ({
                   <SelectContent>
                     {categories.length > 0 ? (
                       categories.map((item: KategoriItem) => (
-                        <SelectItem key={item.id} value={item.namaKategori}>
+                        <SelectItem key={item.id} value={item.namaKategori} className="py-2">
                           <div className="flex w-full items-center justify-between gap-4">
                             <span className="font-medium text-foreground">
                               {item.namaKategori}
@@ -214,13 +214,12 @@ const PetugasPenimbangan = ({
           <Button
             type="submit"
             disabled={isPending || !berat || berat <= 0 || isSuccess}
-            className="w-full h-11 lg:h-12 rounded-full flex"
+            className="w-full h-12 rounded-full flex"
           >
             {isPending || isSuccess ? (
               <Spinner />
             ) : (
               <>
-                <Save className="size-5" />
                 Simpan & Tambah Poin
               </>
             )}

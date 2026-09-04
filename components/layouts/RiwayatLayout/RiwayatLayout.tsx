@@ -8,7 +8,9 @@ import {
 } from "@/components/commons/FilterRiwayat/FilterRiwayat";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { ChartNoAxesColumn, RotateCcw } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Banknote, ChartNoAxesColumn, RotateCcw } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useRiwayat } from "./useRiwayat";
 import { TransactionItem } from "@/types/riwayat";
@@ -16,8 +18,13 @@ import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CardRiwayatSkeleton } from "@/components/commons/CardSkeleton/CardSkeleton";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 const RiwayatLayout = () => {
+  const router = usePathname();
+  const isWarung = router.includes("warung");
+  const isPetugas = router.includes("petugas");
   const [filterJenis, setFilterJenis] = useState<FilterJenisType>("all");
   const [selectedDateRange, setSelectedDateRange] = useState<
     DateRange | undefined
@@ -36,8 +43,6 @@ const RiwayatLayout = () => {
     startDate,
     endDate,
   });
-
-  console.log(riwayat)
 
   const groupedByMonthAndDate = useMemo(() => {
     const transactions = riwayat?.transactions ?? [];
@@ -79,11 +84,14 @@ const RiwayatLayout = () => {
           onSelectDateRange={setSelectedDateRange}
           onResetDateRange={() => setSelectedDateRange(undefined)}
         />
-        <FilterJenisPopup
-          selectedJenis={filterJenis}
-          onSelectJenis={setFilterJenis}
-          onResetJenis={() => setFilterJenis("all")}
-        />
+        <div className={cn(isPetugas && "hidden")}>
+          <FilterJenisPopup
+            selectedJenis={filterJenis}
+            onSelectJenis={setFilterJenis}
+            onResetJenis={() => setFilterJenis("all")}
+            role={isWarung ? "warung" : undefined}
+          />
+        </div>
 
         {/* Tombol Reset Filter Cepat */}
         {isAnyFilterActive && (
@@ -130,15 +138,60 @@ const RiwayatLayout = () => {
                     </div>
 
                     <div className="flex flex-col gap-2.5">
-                      {items.map((item) => (
-                        <CardRiwayat
-                          key={item.id}
-                          title={item.title}
-                          date={`${item.time}`}
-                          poin={item.poin}
-                          weight={item.weight}
-                        />
-                      ))}
+                      {items.map((item) => {
+                        // Card khusus untuk pencairan dana warung
+                        if (item.type === ("reimburse" as string)) {
+                          const isReimbPending = (item as TransactionItem & { reimbursementStatus?: boolean }).reimbursementStatus === false;
+                          return (
+                            <Card
+                              key={item.id}
+                              className="py-3.5 px-4 md:px-5 rounded-xl bg-card ring-1"
+                            >
+                              <CardContent className="flex items-center justify-between p-0">
+                                <div className="flex items-center gap-3.5">
+                                  <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600">
+                                    <Banknote className="size-5" />
+                                  </div>
+                                  <div className="flex flex-col gap-1.5">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="font-medium text-sm text-foreground leading-snug">
+                                        {item.title}
+                                      </span>
+                                      <Badge
+                                        variant="outline"
+                                        className={
+                                          isReimbPending
+                                            ? "bg-amber-500/10 text-amber-600 border-amber-500/20 text-[0.6rem] px-1.5"
+                                            : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[0.6rem] px-1.5"
+                                        }
+                                      >
+                                        {isReimbPending ? "Menunggu" : "Selesai"}
+                                      </Badge>
+                                    </div>
+                                    <span className="text-xs text-muted-foreground">
+                                      {`${item.time}`}
+                                    </span>
+                                  </div>
+                                </div>
+                                <span className="font-bold text-base md:text-lg shrink-0 ml-3 text-blue-600">
+                                  {item.poin}
+                                </span>
+                              </CardContent>
+                            </Card>
+                          );
+                        }
+
+                        // Card standar untuk penukaran & setoran
+                        return (
+                          <CardRiwayat
+                            key={item.id}
+                            title={item.title}
+                            date={`${item.time}`}
+                            poin={item.poin}
+                            weight={item.weight}
+                          />
+                        );
+                      })}
                     </div>
                   </div>
                 ))}

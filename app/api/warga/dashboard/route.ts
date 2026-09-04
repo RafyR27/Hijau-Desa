@@ -18,15 +18,14 @@ export async function GET() {
           message: "Unauthorized",
           data: null,
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     const identifier = session.user.id;
     const role = session.user.role;
 
-    
-    if(role !== "warga"){
+    if (role !== "warga") {
       return NextResponse.json(
         {
           status: 403,
@@ -48,7 +47,7 @@ export async function GET() {
           message: "Terlalu banyak permintaan. Silakan coba lagi nanti.",
           data: null,
         },
-        { status: 429 }
+        { status: 429 },
       );
     }
 
@@ -64,18 +63,21 @@ export async function GET() {
         kategori: { select: { namaKategori: true } },
       },
       orderBy: { createdAt: "desc" },
-      take: 5,
+      take: 4,
     });
 
     const tukarList = await prisma.transaksiTukar.findMany({
       where: { wargaId: identifier },
       include: {
-        product: { select: { namaProduct: true } },
+        details: {
+          include: {
+            product: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
-      take: 5,
+      take: 4,
     });
-
 
     const transaksi = [
       ...setorList.map((item) => ({
@@ -114,7 +116,9 @@ export async function GET() {
       ...tukarList.map((item) => ({
         id: `tukar-${item.id}`,
         type: "keluar" as const,
-        title: `Tukar ${item.product.namaProduct}`,
+        title: `Tukar ${item.details
+          .map((detail) => detail.product.namaProduct)
+          .join(", ")}`,
         createdAt: item.createdAt,
 
         dateKey: item.createdAt.toLocaleDateString("en-CA", {
@@ -141,11 +145,11 @@ export async function GET() {
           timeZone: "Asia/Jakarta",
         })} WIB`,
 
-        poin: `-${item.poinKeluar}`,
+        poin: `-${item.totalPoin}`,
       })),
     ]
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-      .slice(0, 5);
+      .slice(0, 4);
 
     data = {
       saldo: poinWarga ? poinWarga.saldo : 0,
@@ -159,7 +163,7 @@ export async function GET() {
         message: "Berhasil mengambil data dashboard",
         data,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error(error);
@@ -170,7 +174,7 @@ export async function GET() {
         message: "Terjadi kesalahan pada server",
         data: null,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

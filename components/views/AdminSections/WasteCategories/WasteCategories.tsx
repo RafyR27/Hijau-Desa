@@ -25,13 +25,8 @@ export default function WasteCategoriesView() {
   const { data: kategori, isLoading } = useQuery({
     queryKey: ["kategori"],
     queryFn: async () => {
-      try {
-        const res = await instance.get("/admin/kategori");
-        return res.data.data;
-      } catch {
-        const res = await instance.get("/general/kategori");
-        return res.data.data;
-      }
+      const res = await instance.get("/admin/kategori");
+      return res.data.data;
     },
   });
 

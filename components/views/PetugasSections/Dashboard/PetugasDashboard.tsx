@@ -21,16 +21,16 @@ const PetugasDashboard = ({ user }: { user?: SessionUser }) => {
   return (
     <div className="w-full  mx-auto flex flex-col gap-6 md:gap-8">
       {/* Dashboard Petugas */}
-      <CardPetugas user={user} />
+      <CardPetugas id="card" user={user} />
 
-      <div className="grid grid-cols-2 gap-3">
+      <div id="card-informations" className="grid grid-cols-2 gap-3">
         <CardPetugasGrid title="Total Sampah" totalSampah={data?.totalSampah ?? 0} />
         <CardPetugasGrid title="Total Transaksi" totalSetor={data?.totalSetor ?? 0} />
       </div>
 
       {/* Riwayat */}
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between px-0.5">
+        <div id="riwayat" className="flex items-center justify-between px-0.5">
           <h2 className="font-bold text-lg md:text-xl text-foreground">
             Riwayat Terbaru
           </h2>

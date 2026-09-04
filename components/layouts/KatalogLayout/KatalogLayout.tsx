@@ -39,8 +39,6 @@ const KatalogLayout = ({ user }: { user?: SessionUser }) => {
     },
   });
 
-  console.log(data);
-
   return (
     <div className="mx-auto flex flex-col gap-7">
       <CardPoin user={user} saldo={data.saldo} />
@@ -64,7 +62,10 @@ const KatalogLayout = ({ user }: { user?: SessionUser }) => {
             <CardKatalog
               key={item.id}
               name={item.namaProduct}
-              image={item.image || "/garbage-can.webp"}
+              image={
+                item.image ||
+                "https://res.cloudinary.com/dejhqj1te/image/upload/v1787953889/no-image_skmrix.jpg"
+              }
               poin={item.hargaPoin}
             />
           ))

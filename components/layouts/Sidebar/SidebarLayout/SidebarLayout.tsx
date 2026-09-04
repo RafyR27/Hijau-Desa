@@ -1,7 +1,10 @@
+"use client";
 
+import { useState } from "react";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "../common/SideBar/app-sidebar";
 import { SessionUser } from "@/types/user";
+import LogoutDialog from "@/components/commons/LogoutDialog/LogoutDialog";
 
 export default function SidebarLayout({
   children,
@@ -10,6 +13,8 @@ export default function SidebarLayout({
   children: React.ReactNode;
   user?: SessionUser
 }) {
+  const [logoutOpen, setLogoutOpen] = useState(false);
+
   return (
     <SidebarProvider
       style={
@@ -19,8 +24,9 @@ export default function SidebarLayout({
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" user={user} />
+      <AppSidebar variant="inset" user={user} onLogout={() => setLogoutOpen(true)} />
       <SidebarInset>{children}</SidebarInset>
+      <LogoutDialog open={logoutOpen} onOpenChange={setLogoutOpen} />
     </SidebarProvider>
   );
 }

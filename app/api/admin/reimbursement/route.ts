@@ -53,7 +53,7 @@ export async function GET(req: Request) {
 
     const reimbursement = await prisma.reimbursement.findMany({
       orderBy: {
-        id: "asc",
+        createdAt: "desc",
       },
       include: {
         warung: {

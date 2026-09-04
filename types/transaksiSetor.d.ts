@@ -1,5 +1,5 @@
 interface TransaksiSetor {
-  transaksiId: number;
+  transaksiId: string;
   namaWarga: string;
   kategoriSampah: string;
   beratSampah: number;
@@ -8,4 +8,15 @@ interface TransaksiSetor {
   createdAt: Date;
 }
 
-export type { TransaksiSetor };
+interface TransaksiSetorAdmin {
+  id: string;
+  jenis: string;
+  warga: string;
+  anggota: string;
+  detailItem: string;
+  poin: number;
+  amountRupiah: number;
+  createdAt: Date;
+}
+
+export type { TransaksiSetor, TransaksiSetorAdmin };

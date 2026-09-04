@@ -57,7 +57,9 @@ export const useProfileEdit = ({ user }: { user?: SessionUser }) => {
     },
 
     onSuccess: () => {
-      //   ;
+      toast.success("Profil berhasil diperbarui", {
+        position: "top-right",
+      });
     },
   });
 

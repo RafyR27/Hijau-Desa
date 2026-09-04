@@ -232,17 +232,6 @@ const AgreementView = ({
               dengan Hijau Desa.
             </p>
           </div>
-
-          <div className="flex gap-3">
-            <span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />
-
-            <p className="text-sm leading-6 text-muted-foreground">
-              Untuk pemilik warung dan petugas, aplikasi dapat meminta akses
-              kamera untuk fitur pemindaian QR. Kamera hanya digunakan ketika
-              fitur pemindaian QR dijalankan dan setelah Anda memberikan izin
-              melalui browser.
-            </p>
-          </div>
         </div>
       </div>
 

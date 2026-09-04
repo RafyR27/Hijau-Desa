@@ -4,7 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoginSection from "@/components/views/LoginSection/LoginSection";
 import RegisterSection from "@/components/views/RegisterSection/RegisterSection";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const titleAuth = [
   {
@@ -19,8 +20,16 @@ const titleAuth = [
   },
 ];
 
-export default function AuthLayout() {
+export default function AuthLayout({success}: {success?: string}) {
   const [activeTab, setActiveTab] = useState("login");
+
+  useEffect(() => {
+    if (success === "reset-password") {
+      toast.success("Password berhasil direset. Silahkan masuk kembali.", {
+        position: "top-right",
+      });
+    }
+  }, [success]);
 
   const currentAuth = titleAuth.find((item) => item.name === activeTab);
 

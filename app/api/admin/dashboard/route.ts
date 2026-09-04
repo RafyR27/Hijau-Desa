@@ -62,7 +62,6 @@ export async function GET(request: Request) {
     const totalPoinTerdistribusi = aggregateSampah._sum.poinMasuk || 0;
     const totalSampah = aggregateSampah._sum.beratKg || 0;
 
-    // Reimburse / pencairan is currently not a distinct table, but we can return 0 or placeholder if not present.
     const totalPengajuanReimburs = 0;
 
     const kategoriAktif = await prisma.kategoriSampah.count({
@@ -96,15 +95,16 @@ export async function GET(request: Request) {
       },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error) {
+    console.error(error);
     return NextResponse.json(
       {
         status: 500,
         code: "INTERNAL_SERVER_ERROR",
-        message: error.message,
+        message: "Terjadi kesalahan pada server",
         data: null,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

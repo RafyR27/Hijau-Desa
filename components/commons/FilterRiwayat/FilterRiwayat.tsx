@@ -32,7 +32,7 @@ import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 
-export type FilterJenisType = "all" | "in" | "out";
+export type FilterJenisType = "all" | "in" | "out" | "reimburse";
 
 export interface FilterDateProps {
   selectedDateRange?: DateRange;
@@ -44,6 +44,7 @@ export interface FilterJenisProps {
   selectedJenis: FilterJenisType;
   onSelectJenis: (jenis: FilterJenisType) => void;
   onResetJenis: () => void;
+  role?: string;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -75,7 +76,7 @@ function FilterDateContent({
     <div className="flex flex-col gap-4 px-5 py-5">
       <div className="flex flex-col">
         <div className="flex items-center justify-between mb-3 h-5">
-          <Label className="text-xs font-semibold text-foreground">
+          <Label className="text-sm font-semibold text-foreground">
             Pilih Rentang Tanggal
           </Label>
 
@@ -84,7 +85,7 @@ function FilterDateContent({
               type="button"
               variant="destructive"
               onClick={handleReset}
-              className="rounded-xl h-7 text-xs px-2.5"
+              className="rounded-xl h-8 text-xs px-2.5"
             >
               Hapus
             </Button>
@@ -92,7 +93,7 @@ function FilterDateContent({
         </div>
 
         <DatePickerWithRange
-        className="self-center"
+          className="self-center"
           value={tempDateRange}
           onChange={setTempDateRange}
         />
@@ -103,7 +104,7 @@ function FilterDateContent({
           type="button"
           variant="destructive"
           onClick={handleReset}
-          className="flex-1 rounded-xl h-10 text-xs gap-1.5 hidden md:flex"
+          className="flex-1 rounded-xl h-12 lg:h-10 text-xs gap-1.5 hidden md:flex"
         >
           Hapus
         </Button>
@@ -112,7 +113,7 @@ function FilterDateContent({
           type="button"
           variant="default"
           onClick={handleApply}
-          className="flex-1 rounded-xl h-10 text-xs font-semibold"
+          className="flex-1 rounded-xl h-12 lg:h-10 text-xs font-semibold"
         >
           Terapkan
         </Button>
@@ -224,6 +225,7 @@ function FilterJenisContent({
   onSelectJenis,
   onResetJenis,
   onClose,
+  role,
 }: FilterJenisProps & { onClose?: () => void }) {
   const [tempJenis, setTempJenis] = useState<FilterJenisType>(selectedJenis);
 
@@ -238,7 +240,35 @@ function FilterJenisContent({
     onClose?.();
   };
 
-  const options: {
+  // Opsi filter khusus warung
+  const warungOptions: {
+    value: FilterJenisType;
+    label: string;
+    description: string;
+    icon: React.ReactNode;
+  }[] = [
+    {
+      value: "all",
+      label: "Semua Transaksi",
+      description: "Menampilkan semua penukaran poin dan pencairan dana (rembers)",
+      icon: <Filter className="size-4 text-primary" />,
+    },
+    {
+      value: "reimburse",
+      label: "Rembers",
+      description: "Riwayat pengajuan pencairan dana (rembers) ke admin",
+      icon: <ArrowUpRight className="size-4 text-blue-500" />,
+    },
+    {
+      value: "in",
+      label: "Poin Masuk",
+      description: "Poin yang diterima dari penukaran sembako warga",
+      icon: <ArrowDownLeft className="size-4 text-primary" />,
+    },
+  ];
+
+  // Opsi filter untuk role lain (warga, petugas)
+  const defaultOptions: {
     value: FilterJenisType;
     label: string;
     description: string;
@@ -264,10 +294,12 @@ function FilterJenisContent({
     },
   ];
 
+  const options = role === "warung" ? warungOptions : defaultOptions;
+
   return (
     <div className="flex flex-col gap-4 px-5 pb-6 pt-3">
       <div className="flex justify-between h-5 mt-2">
-        <Label className="text-xs font-semibold text-foreground">
+        <Label className="text-sm font-semibold text-foreground">
           Pilih Jenis Transaksi
         </Label>
         {tempJenis !== "all" && (
@@ -275,7 +307,7 @@ function FilterJenisContent({
             type="button"
             variant="destructive"
             onClick={handleReset}
-            className="flex rounded-xl h-7 text-xs md:hidden px-2.5 self-end"
+            className="flex rounded-xl h-8 text-xs md:hidden px-2.5 self-end"
           >
             Hapus
           </Button>
@@ -334,7 +366,7 @@ function FilterJenisContent({
           type="button"
           variant="destructive"
           onClick={handleReset}
-          className="flex-1 rounded-xl h-10 text-xs gap-1.5 hidden md:flex"
+          className="flex-1 rounded-xl h-12 lg:h-10 text-xs gap-1.5 hidden md:flex"
         >
           Hapus
         </Button>
@@ -342,7 +374,7 @@ function FilterJenisContent({
           type="button"
           variant="default"
           onClick={handleApply}
-          className="flex-1 rounded-xl h-10 text-xs font-semibold"
+          className="flex-1 rounded-xl h-12 lg:h-10 text-xs font-semibold"
         >
           Terapkan
         </Button>
@@ -355,6 +387,7 @@ export function FilterJenisPopup({
   selectedJenis,
   onSelectJenis,
   onResetJenis,
+  role,
 }: FilterJenisProps) {
   const [openDialog, setOpenDialog] = useState(false);
   const [openDrawer, setOpenDrawer] = useState(false);
@@ -364,6 +397,7 @@ export function FilterJenisPopup({
   const getJenisLabel = () => {
     if (selectedJenis === "in") return "Poin Masuk";
     if (selectedJenis === "out") return "Poin Keluar";
+    if (selectedJenis === "reimburse") return "Rembers";
     return "Jenis";
   };
 
@@ -398,6 +432,7 @@ export function FilterJenisPopup({
               onSelectJenis={onSelectJenis}
               onResetJenis={onResetJenis}
               onClose={() => setOpenDialog(false)}
+              role={role}
             />
           </DialogContent>
         </Dialog>
@@ -432,6 +467,7 @@ export function FilterJenisPopup({
               onSelectJenis={onSelectJenis}
               onResetJenis={onResetJenis}
               onClose={() => setOpenDrawer(false)}
+              role={role}
             />
           </DrawerContent>
         </Drawer>

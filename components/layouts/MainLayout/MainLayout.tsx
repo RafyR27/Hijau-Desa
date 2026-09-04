@@ -20,11 +20,13 @@ export default function MainLayout({
   const isSubPage =
     route.includes("notification") ||
     route.includes("scan") ||
-    route.includes("penimbangan");
+    route.includes("penimbangan") ||
+    route.includes("penukaran");
 
   const isPetugasPage =
     route.includes("scan") ||
-    route.includes("penimbangan");
+    route.includes("penimbangan") ||
+    route.includes("penukaran");
 
   return (
     <div className="w-full min-h-screen relative">
