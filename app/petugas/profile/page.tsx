@@ -6,7 +6,7 @@ export default async function ProfilePetugas() {
   const session = await requireRole("petugas");
 
   return (
-    <MainLayout>
+    <MainLayout user={session.user}>
       <PetugasProfile user={session.user} />
     </MainLayout>
   );

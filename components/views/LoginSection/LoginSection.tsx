@@ -28,6 +28,7 @@ const LoginSection = () => {
     control,
     handleLogin,
     handleSubmit,
+    handleGoogle,
   } = useLogin();
 
   return (
@@ -37,6 +38,7 @@ const LoginSection = () => {
           type="button"
           variant={"outline"}
           className="w-full h-10 rounded-lg text-sm font-medium flex gap-3 cursor-pointer border-primary/50 border-2"
+          onClick={handleGoogle}
         >
           <FcGoogle />
           Masuk dengan Google
@@ -75,6 +77,7 @@ const LoginSection = () => {
                   type="text"
                   placeholder="Masukkan email"
                   className="rounded-lg px-5 bg-background h-11 lg:h-9"
+                  disabled={isPendingLogin || isSuccessLogin}
                 />
               </FieldContent>
 
@@ -92,7 +95,7 @@ const LoginSection = () => {
                 <FieldLabel htmlFor="password">Kata Sandi</FieldLabel>
 
                 <Link
-                  href={"/"}
+                  href={"/auth/forgot-password"}
                   className="text-primary hover:underline text-[0.8rem]"
                 >
                   Lupa Kata Sandi?
@@ -108,6 +111,7 @@ const LoginSection = () => {
                     type={showPassword ? "text" : "password"}
                     placeholder="Masukkan kata sandi"
                     className="px-5 "
+                    disabled={isPendingLogin || isSuccessLogin}
                   />
                   <InputGroupAddon align="inline-end">
                     <button

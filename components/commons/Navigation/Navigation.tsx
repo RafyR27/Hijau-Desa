@@ -22,6 +22,7 @@ import { usePathname } from "next/navigation";
 import { SessionUser } from "@/types/user";
 import { useQuery } from "@tanstack/react-query";
 import instance from "@/lib/instance";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const NavbarMain = ({ user }: { user?: SessionUser }) => {
   const route = usePathname();
@@ -73,6 +74,7 @@ const NavbarMain = ({ user }: { user?: SessionUser }) => {
           </Avatar>
 
           <Link
+            id="notification"
             href={
               route.includes("warga")
                 ? "/warga/notification"
@@ -134,12 +136,14 @@ const Navbar = ({ user }: { user?: SessionUser }) => {
 
 const BottomBar = ({ user }: { user?: SessionUser }) => {
   const route = usePathname();
+  const isMobile = useIsMobile()
 
   return (
     <div className="fixed bottom-0 md:bottom-5 left-0 z-50 w-full ">
       <div className="mx-auto flex full md:max-w-md items-center justify-between border-t md:border md:rounded-2xl bg-background px-4 py-1.5 md:py-1 md:justify-around">
         {/* Beranda */}
         <Link
+          id="beranda"
           href={
             route.includes("warga")
               ? "/warga/dashboard"
@@ -160,6 +164,7 @@ const BottomBar = ({ user }: { user?: SessionUser }) => {
 
         {/* Riwayat */}
         <Link
+          id="riwayatBottom"
           href={
             route.includes("warga")
               ? "/warga/riwayat"
@@ -184,6 +189,7 @@ const BottomBar = ({ user }: { user?: SessionUser }) => {
         route.includes("warung") ||
         user?.role === "warung" ? (
           <Link
+            id="qr-button"
             href={user?.role === "petugas" ? "/petugas/scan" : "/warung/scan"}
             className="p-3.5 md:p-3 -translate-y-5 md:translate-y-0 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground text-center transition-transform active:scale-95 flex items-center justify-center"
           >
@@ -194,12 +200,14 @@ const BottomBar = ({ user }: { user?: SessionUser }) => {
             <div className="hidden md:block">
               <PopupQRlargeBottomBar
                 statusVerifikasi={user?.statusVerifikasi}
+                id={!isMobile ? "qr-button" : undefined}
               />
             </div>
 
             <div className="block md:hidden">
               <PopupQRMobileBottomBar
                 statusVerifikasi={user?.statusVerifikasi}
+                id={isMobile ? "qr-button" : undefined}
               />
             </div>
           </>
@@ -207,6 +215,7 @@ const BottomBar = ({ user }: { user?: SessionUser }) => {
 
         {/* Katalog */}
         <Link
+          id="katalog"
           href={
             route.includes("warga")
               ? "/warga/katalog"
@@ -227,6 +236,7 @@ const BottomBar = ({ user }: { user?: SessionUser }) => {
 
         {/* Profil */}
         <Link
+          id="profile"
           href={
             route.includes("warga")
               ? "/warga/profile"
@@ -252,16 +262,24 @@ const BottomBar = ({ user }: { user?: SessionUser }) => {
 const NavbarProfile = () => {
   const route = usePathname();
 
+  const getBackLink = () => {
+    const role = route.includes("warga")
+      ? "warga"
+      : route.includes("petugas")
+        ? "petugas"
+        : "warung";
+
+    if (route.includes("/profile/edit/edit-email")) {
+      return `/${role}/profile/edit`;
+    }
+
+    return `/${role}/profile`;
+  };
+
   return (
     <div className="w-full h-auto px-5 py-4 lg:px-20 flex justify-between items-center">
       <Link
-        href={
-          route.includes("warga")
-            ? "/warga/profile"
-            : route.includes("petugas")
-              ? "/petugas/profile"
-              : "/warung/profile"
-        }
+        href={getBackLink()}
         className="p-2 hover:bg-accent rounded-full flex gap-3 font-medium active:scale-95 transition-transform"
       >
         <ArrowLeft className="size-6" />

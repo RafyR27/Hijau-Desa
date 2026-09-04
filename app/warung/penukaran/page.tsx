@@ -1,5 +1,4 @@
 import MainLayout from "@/components/layouts/MainLayout/MainLayout";
-import PetugasPenimbangan from "@/components/views/PetugasSections/Penimbangan/PetugasPenimbangan";
 import WarungPenukaran from "@/components/views/WarungSections/Penukaran/WarungPenukaran";
 import instance from "@/lib/instance";
 import { requireRole } from "@/lib/session";

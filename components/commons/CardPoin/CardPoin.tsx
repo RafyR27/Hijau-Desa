@@ -19,13 +19,22 @@ const qrButtonTrigger = (
   </Button>
 );
 
-function CardPoin({ user, saldo }: { user?: SessionUser; saldo: number }) {
+function CardPoin({
+  user,
+  saldo,
+  id,
+}: {
+  user?: SessionUser;
+  saldo: number;
+  id?: string;
+}) {
   const today = formatDate();
   const path = usePathname();
 
   return (
     <>
       <div
+        id={id}
         className={cn(
           "rounded-2xl bg-primary text-primary-foreground p-6 md:p-8 gap-6 shadow-sm",
           path.includes("warga") || path.includes("warung")
@@ -113,13 +122,16 @@ function CardPoin({ user, saldo }: { user?: SessionUser; saldo: number }) {
   );
 }
 
-function CardPetugas({ user }: { user?: SessionUser }) {
+function CardPetugas({ user, id }: { user?: SessionUser; id?: string }) {
   const today = formatDate();
   const path = usePathname();
 
   return (
     <>
-      <div className="rounded-2xl bg-primary text-primary-foreground flex flex-col p-6 md:p-8 gap-6 shadow-sm">
+      <div
+        id={id}
+        className="rounded-2xl bg-primary text-primary-foreground flex flex-col p-6 md:p-8 gap-6 shadow-sm"
+      >
         {/* Top bar: Date & Badge */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div className="space-y-1">

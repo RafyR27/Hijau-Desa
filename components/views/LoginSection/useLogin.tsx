@@ -34,6 +34,13 @@ export const useLogin = () => {
     },
   });
 
+  const handleGoogle = async () => {
+    await signIn.social({
+      provider: "google",
+      callbackURL: "/warga/dashboard"
+    });
+  };
+
   const loginService = async (payload: ILogin) => {
     const { data, error } = await signIn.email({
       email: payload.email,
@@ -71,5 +78,6 @@ export const useLogin = () => {
     control,
     handleSubmit,
     isPendingLogin,
+    handleGoogle,
   };
 };

@@ -19,11 +19,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import LogoutDialog from "@/components/commons/LogoutDialog/LogoutDialog";
 
-const ProfileLayout = ({
-  user,
-}: {
-  user?: SessionUser;
-}) => {
+const ProfileLayout = ({ user }: { user?: SessionUser }) => {
   const route = usePathname();
   const [logoutOpen, setLogoutOpen] = useState(false);
 
@@ -50,35 +46,37 @@ const ProfileLayout = ({
             <p className="text-xs truncate max-w-65 lg:text-sm">
               {user?.email}
             </p>
-            <p className="text-xs truncate max-w-65 lg:text-sm">{user?.noHP}</p>
+            <p className="text-xs truncate max-w-65 lg:text-sm">
+              {user?.noHP.replace(/(\d{4})(\d{4})(\d+)/, "$1-$2-$3")}
+            </p>
           </div>
         </div>
 
         <Card
           className={cn(
-            "w-full overflow-hidden rounded-2xl border-0 bg-amber-500 text-amber-950",
+            "w-full overflow-hidden rounded-2xl border-0 bg-blue-100 text-blue-950",
             user?.statusVerifikasi ? "hidden" : "block",
           )}
         >
           <CardContent className="flex items-center gap-4 px-5 md:px-6 md:py-1">
             {/* Icon */}
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-amber-800/15">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-blue-800/15">
               <Clock3 className="size-5" />
             </div>
 
             {/* Content */}
-            <div className="min-w-0 flex-1 space-y-1 text-amber-950">
+            <div className="min-w-0 flex-1 space-y-1 text-blue-950">
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="font-semibold leading-tight">
                   Menunggu Verifikasi
                 </h3>
 
-                <span className="rounded-full bg-amber-800/15 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide">
+                <span className="rounded-full bg-blue-800/15 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide">
                   Dalam Proses
                 </span>
               </div>
 
-              <p className="text-sm leading-5 text-amber-950/75">
+              <p className="text-sm leading-5 text-blue-950/75">
                 Akun Anda sedang diperiksa oleh pengurus. Anda akan dapat
                 menggunakan seluruh fitur setelah proses verifikasi selesai.
               </p>
@@ -179,13 +177,7 @@ const ProfileLayout = ({
               icon={<Info className="size-5" />}
               title="Tentang Aplikasi"
               description="Informasi versi dan pengembang"
-              href={
-                route.includes("warga")
-                  ? "/about"
-                  : route.includes("petugas")
-                    ? "/about"
-                    : "/about"
-              }
+              href={"#"}
             />
 
             <Separator />
@@ -194,13 +186,7 @@ const ProfileLayout = ({
               icon={<CircleQuestionMark className="size-5" />}
               title="Pusat Bantuan"
               description="Bantuan dan pertanyaan umum"
-              href={
-                route.includes("warga")
-                  ? "/help"
-                  : route.includes("petugas")
-                    ? "/help"
-                    : "/help"
-              }
+              href={"#"}
             />
           </div>
         </div>

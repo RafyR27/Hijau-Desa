@@ -112,7 +112,9 @@ export default function SettingsView() {
           <Button
             className="flex items-center gap-2"
             onClick={() => handleKonfigurasiDialog(data)}
-            disabled={conversionRate === String(data?.ratePoinKeRupiah)}
+            disabled={
+              conversionRate === String(data?.ratePoinKeRupiah) || isLoading
+            }
           >
             <Save className="h-4 w-4" /> Simpan Perubahan
           </Button>

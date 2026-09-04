@@ -2,7 +2,7 @@
 
 import { NavbarProfile } from "@/components/commons/Navigation/Navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SessionUser } from "@/types/user";
 import { useProfileEdit } from "./useProfileEdit";
@@ -14,6 +14,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
+import Link from "next/link";
 import { useEffect } from "react";
 
 export default function ProfileEditLayout({ user }: { user?: SessionUser }) {
@@ -96,7 +97,14 @@ export default function ProfileEditLayout({ user }: { user?: SessionUser }) {
                   disabled
                 />
 
-                <Button className="rounded-lg h-11 lg:h-9">Edit Email</Button>
+                <Link
+                  href={`/${user?.role || "warga"}/profile/edit/edit-email`}
+                  className={buttonVariants({
+                    className: "rounded-lg h-11 lg:h-9 px-4",
+                  })}
+                >
+                  Edit Email
+                </Link>
               </div>
             </Field>
 

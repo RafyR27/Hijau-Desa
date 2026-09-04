@@ -1,7 +1,7 @@
 interface ItemTransaksiTukar {
-  productId: number,
-  namaProduct: string,
-  qty: number,
+  productId: number;
+  namaProduct: string;
+  qty: number;
 }
 
 interface TransaksiTukar {
@@ -12,4 +12,15 @@ interface TransaksiTukar {
   createdAt: Date;
 }
 
-export type { TransaksiSetor, TransaksiTukar };
+interface TransaksiTukarAdmin {
+  id: string;
+  jenis: string;
+  warga: string;
+  anggota: string;
+  detailItem: string;
+  poin: string;
+  amountRupiah: number;
+  createdAt: Date;
+}
+
+export type { TransaksiSetor, TransaksiTukar, TransaksiTukarAdmin };

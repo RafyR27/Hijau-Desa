@@ -1,35 +1,87 @@
 "use client";
 
-import { useState } from "react";
-import { SessionUser } from "@/types/user";
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowDownLeft, ArrowUpRight, Search, Download } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  ArrowDownLeft,
+  ArrowUpRight,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Inbox,
+} from "lucide-react";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import instance from "@/lib/instance";
+import { formatDateVerif } from "@/lib/formated";
 
-interface TransactionsProps {
-  user?: SessionUser;
+
+interface TransactionItem {
+  id: string;
+  jenis: "setor" | "tukar";
+  warga: string;
+  anggota: string;
+  detailItem: string;
+  poin: string;
+  amountRupiah: number;
+  createdAt: string;
 }
 
-export default function TransactionsView({ user }: TransactionsProps) {
+interface TransactionsResponse {
+  transaksi: TransactionItem[];
+  total: number;
+  pageIndex: number;
+  pageSize: number;
+}
+
+const FILTER_MAP: Record<string, string> = {
+  all: "Semua",
+  setor: "Setor",
+  tukar: "Tukar",
+};
+
+export default function TransactionsView() {
   const [currentTab, setCurrentTab] = useState("all");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [pageIndex, setPageIndex] = useState(0);
+  const pageSize = 10;
 
-  const dummyTransactions = [
-    { id: "TRX-001", type: "setor", user: "Budi Santoso", actor: "Petugas Ahmad", item: "Plastik PET (5.2 kg)", points: "+260 Poin", date: "28 Agu 2026, 06:10" },
-    { id: "TRX-002", type: "tukar", user: "Siti Rahmawati", actor: "Warung Berkah", item: "Beras Premium 5kg", points: "-150 Poin", date: "27 Agu 2026, 17:30" },
-    { id: "TRX-003", type: "setor", user: "Ahmad Dahlan", actor: "Petugas Ahmad", item: "Kardus Bekas (12.0 kg)", points: "+360 Poin", date: "27 Agu 2026, 15:45" },
-    { id: "TRX-004", type: "tukar", user: "Budi Santoso", actor: "Warung Berkah", item: "Minyak Goreng 1L", points: "-40 Poin", date: "27 Agu 2026, 11:20" },
-    { id: "TRX-005", type: "setor", user: "Dewi Lestari", actor: "Petugas Hendra", item: "Minyak Jelantah (2.0 L)", points: "+200 Poin", date: "26 Agu 2026, 09:15" },
-  ];
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [search]);
 
-  const filtered = dummyTransactions.filter((trx) => {
-    const matchSearch = trx.user.toLowerCase().includes(search.toLowerCase()) || trx.id.toLowerCase().includes(search.toLowerCase());
-    if (currentTab === "all") return matchSearch;
-    return matchSearch && trx.type === currentTab;
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPageIndex(0);
+  }, [currentTab, debouncedSearch]);
+
+  const { data, isLoading } = useQuery<TransactionsResponse>({
+    queryKey: ["admin-transactions", pageIndex, pageSize, currentTab, debouncedSearch],
+    queryFn: async () => {
+      const res = await instance.get("/admin/riwayat", {
+        params: {
+          pageIndex,
+          pageSize,
+          filter: FILTER_MAP[currentTab] || "Semua",
+          search: debouncedSearch,
+        },
+      });
+      return res.data.data;
+    },
+    placeholderData: keepPreviousData,
   });
+
+  const transaksi = data?.transaksi ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.ceil(total / pageSize);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -46,12 +98,6 @@ export default function TransactionsView({ user }: TransactionsProps) {
                 sembako di warung mitra.
               </p>
             </div>
-            <Button
-              variant="outline"
-              className="flex items-center gap-2 self-start sm:self-auto"
-            >
-              <Download className="h-4 w-4" /> Ekspor Data (CSV)
-            </Button>
           </div>
 
           {/* Filter bar */}
@@ -67,7 +113,7 @@ export default function TransactionsView({ user }: TransactionsProps) {
             <div className="relative w-full sm:w-72">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Cari ID transaksi atau nama..."
+                placeholder="Cari nama warga atau petugas..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -91,42 +137,126 @@ export default function TransactionsView({ user }: TransactionsProps) {
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {filtered.map((item) => (
-                      <tr key={item.id} className="hover:bg-muted/30">
-                        <td className="px-6 py-4">
-                          <div className="font-semibold text-foreground">
-                            {item.id}
+                    {isLoading ? (
+                      Array.from({ length: 5 }).map((_, i) => (
+                        <tr key={i}>
+                          <td className="px-6 py-4">
+                            <Skeleton className="h-4 w-24 mb-1" />
+                            <Skeleton className="h-3 w-32" />
+                          </td>
+                          <td className="px-6 py-4">
+                            <Skeleton className="h-5 w-20 rounded-full" />
+                          </td>
+                          <td className="px-6 py-4">
+                            <Skeleton className="h-4 w-28" />
+                          </td>
+                          <td className="px-6 py-4">
+                            <Skeleton className="h-4 w-28" />
+                          </td>
+                          <td className="px-6 py-4">
+                            <Skeleton className="h-4 w-36" />
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <Skeleton className="h-4 w-16 ml-auto" />
+                          </td>
+                        </tr>
+                      ))
+                    ) : transaksi.length > 0 ? (
+                      transaksi.map((item) => (
+                        <tr key={item.id} className="hover:bg-muted/30">
+                          <td className="px-6 py-4">
+                            <div className="font-semibold text-foreground max-w-40 truncate">
+                              {item.id}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {formatDateVerif(new Date(item.createdAt))}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            {item.jenis === "setor" ? (
+                              <Badge className="bg-emerald-600/10 text-emerald-600 border-emerald-600/20 hover:bg-emerald-600/20 gap-1">
+                                <ArrowDownLeft className="h-3 w-3" /> Setor
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-blue-600/10 text-blue-600 border-blue-600/20 hover:bg-blue-600/20 gap-1">
+                                <ArrowUpRight className="h-3 w-3" /> Tukar Sembako
+                              </Badge>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 font-medium">{item.warga}</td>
+                          <td className="px-6 py-4 text-muted-foreground">
+                            {item.anggota}
+                          </td>
+                          <td className="px-6 py-4">{item.detailItem}</td>
+                          <td
+                            className={`px-6 py-4 text-right font-bold ${item.jenis === "setor" ? "text-emerald-600" : "text-blue-600"}`}
+                          >
+                            {item.poin}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={6}>
+                          <div className="py-20 text-center flex flex-col items-center gap-2">
+                            <Inbox className="h-10 w-10 text-muted-foreground/50" />
+                            <p className="text-sm font-medium text-foreground">
+                              Belum ada transaksi
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {debouncedSearch
+                                ? `Tidak ditemukan transaksi untuk "${debouncedSearch}".`
+                                : "Data transaksi akan muncul di sini."}
+                            </p>
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            {item.date}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {item.type === "setor" ? (
-                            <Badge className="bg-emerald-600/10 text-emerald-600 border-emerald-600/20 hover:bg-emerald-600/20 gap-1">
-                              <ArrowDownLeft className="h-3 w-3" /> Setor
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-blue-600/10 text-blue-600 border-blue-600/20 hover:bg-blue-600/20 gap-1">
-                              <ArrowUpRight className="h-3 w-3" /> Tukar Sembako
-                            </Badge>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 font-medium">{item.user}</td>
-                        <td className="px-6 py-4 text-muted-foreground">
-                          {item.actor}
-                        </td>
-                        <td className="px-6 py-4">{item.item}</td>
-                        <td
-                          className={`px-6 py-4 text-right font-bold ${item.type === "setor" ? "text-emerald-600" : "text-blue-600"}`}
-                        >
-                          {item.points}
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination */}
+              {!isLoading && total > 0 && (
+                <div className="flex items-center justify-between px-6 py-4 border-t">
+                  <p className="text-sm text-muted-foreground max-w-30">
+                    Menampilkan{" "}
+                    <span className="font-medium text-foreground">
+                      {pageIndex * pageSize + 1}
+                    </span>
+                    –
+                    <span className="font-medium text-foreground">
+                      {Math.min((pageIndex + 1) * pageSize, total)}
+                    </span>{" "}
+                    dari{" "}
+                    <span className="font-medium text-foreground">{total}</span>{" "}
+                    transaksi
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+                      disabled={pageIndex === 0}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      {pageIndex + 1} / {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setPageIndex((p) => Math.min(totalPages - 1, p + 1))
+                      }
+                      disabled={pageIndex >= totalPages - 1}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

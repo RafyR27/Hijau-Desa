@@ -6,7 +6,7 @@ export default async function ProfileWarung() {
   const session = await requireRole("warung");
 
   return (
-    <MainLayout>
+    <MainLayout user={session.user}>
       <WarungProfile user={session.user} />
     </MainLayout>
   );

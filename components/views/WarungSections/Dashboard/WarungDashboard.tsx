@@ -74,7 +74,10 @@ const WarungDashboard = ({ user }: WarungDashboardProps) => {
   return (
     <>
       <div className="w-full mx-auto flex flex-col gap-6 md:gap-8">
-        <div className="rounded-2xl bg-primary text-primary-foreground p-6 md:p-8 flex flex-col gap-6 shadow-sm">
+        <div
+          id="card"
+          className="rounded-2xl bg-primary text-primary-foreground p-6 md:p-8 flex flex-col gap-6 shadow-sm"
+        >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
               <p className="text-xs uppercase tracking-wider text-primary-foreground/70">
@@ -150,20 +153,19 @@ const WarungDashboard = ({ user }: WarungDashboardProps) => {
           </div>
         </div>
 
-        {/* ──────────────────── Banner Pending Pencairan ──────────────────── */}
         {hasPending && (
-          <Card className="w-full overflow-hidden rounded-2xl border-0 bg-amber-500 text-amber-950 py-2">
+          <Card className="w-full overflow-hidden rounded-2xl border-0 bg-blue-100 text-blue-950 py-2">
             <CardContent className="flex items-center gap-4 px-5 md:px-6 md:py-1">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-amber-800/15">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-blue-800/15">
                 <Clock3 className="size-5" />
               </div>
-              <div className="min-w-0 flex-1 space-y-1 text-amber-950">
+              <div className="min-w-0 flex-1 space-y-1 text-blue-950">
                 <div className="flex flex-wrap md:justify-between items-center gap-2">
                   <h3 className="font-semibold leading-tight">
                     Pencairan Dana Diproses
                   </h3>
                 </div>
-                <p className="text-xs text-amber-900/80">
+                <p className="text-xs text-blue-950/80">
                   Pengajuan Rp {pendingJumlahRupiah.toLocaleString("id-ID")}{" "}
                   sedang menunggu konfirmasi admin.
                 </p>
@@ -172,8 +174,7 @@ const WarungDashboard = ({ user }: WarungDashboardProps) => {
           </Card>
         )}
 
-        {/* ──────────────────── Statistik Ringkas ──────────────────── */}
-        <div className="grid grid-cols-2 gap-3">
+        <div id="card-informations" className="grid grid-cols-2 gap-3">
           {/* Total Transaksi */}
           <Card className="rounded-xl py-4 px-4 ring-1 border-0">
             <CardContent className="p-0 flex flex-col gap-4">
@@ -221,7 +222,7 @@ const WarungDashboard = ({ user }: WarungDashboardProps) => {
         </div>
 
         <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between px-0.5">
+          <div id="riwayat" className="flex items-center justify-between px-0.5">
             <h2 className="font-bold text-lg md:text-xl text-foreground">
               Riwayat Terbaru
             </h2>

@@ -53,7 +53,7 @@ const QRBody = ({
       </p>
 
       {/* QR Code Container */}
-      <div className="mt-6 flex h-48 w-48 items-center justify-center rounded-xl border bg-background shadow-sm overflow-hidden relative">
+      <div className="mt-6 flex h-52 w-52 items-center justify-center rounded-xl bg-background overflow-hidden relative">
         {isLoading ? (
           <div className="flex flex-col items-center gap-2">
             <Spinner />
@@ -147,9 +147,6 @@ const QRBody = ({
   );
 };
 
-/* -------------------------------------------------------------------------- */
-/*  Verifikasi Body – ditampilkan saat akun belum diverifikasi                 */
-/* -------------------------------------------------------------------------- */
 const VerifikasiBody = ({ closeButton }: { closeButton: React.ReactNode }) => (
   <div className="flex flex-col items-center px-6 pb-8 pt-6 text-center">
     {/* Ilustrasi */}
@@ -173,13 +170,8 @@ const VerifikasiBody = ({ closeButton }: { closeButton: React.ReactNode }) => (
     <h2 className="text-lg font-bold text-foreground">Upss...</h2>
     <p className="mt-2 text-sm leading-relaxed text-muted-foreground max-w-xs">
       Akun Anda sedang dalam tahap verifikasi. Fitur QR Code akan aktif
-      setelah akun Anda terverifikasi oleh petugas.
+      setelah akun Anda terverifikasi oleh RW atau Kepala Desa.
     </p>
-
-    <div className="mt-5 flex items-center gap-2 rounded-full bg-amber-500/10 border border-amber-500/25 px-4 py-1.5 text-xs font-semibold text-amber-600">
-      <span className="size-2 rounded-full bg-amber-500 animate-pulse" />
-      Menunggu Verifikasi
-    </div>
 
     <div className="mt-6 w-full">
       {closeButton}
@@ -191,7 +183,7 @@ const VerifikasiBody = ({ closeButton }: { closeButton: React.ReactNode }) => (
 /*  BottomBar Popups                                                            */
 /* -------------------------------------------------------------------------- */
 
-const PopupQRMobileBottomBar = ({ statusVerifikasi }: { statusVerifikasi?: boolean }) => {
+const PopupQRMobileBottomBar = ({ statusVerifikasi, id }: { statusVerifikasi?: boolean; id?: string }) => {
   const [open, setOpen] = useState(false);
   const { generateQR, data, isLoading, formattedTime, timeLeft } = useQR();
 
@@ -211,6 +203,7 @@ const PopupQRMobileBottomBar = ({ statusVerifikasi }: { statusVerifikasi?: boole
       <DrawerTrigger
         render={
           <button
+            id={id}
             className="p-3.5 md:p-3 -translate-y-5 md:translate-y-0 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground text-center transition-transform active:scale-95"
           >
             <QrCode className="size-7 md:size-6" strokeWidth={2} />
@@ -255,7 +248,7 @@ const PopupQRMobileBottomBar = ({ statusVerifikasi }: { statusVerifikasi?: boole
   );
 };
 
-const PopupQRlargeBottomBar = ({ statusVerifikasi }: { statusVerifikasi?: boolean }) => {
+const PopupQRlargeBottomBar = ({ statusVerifikasi, id }: { statusVerifikasi?: boolean; id?: string }) => {
   const [open, setOpen] = useState(false);
   const { generateQR, data, isLoading, formattedTime, timeLeft } = useQR();
 
@@ -275,6 +268,7 @@ const PopupQRlargeBottomBar = ({ statusVerifikasi }: { statusVerifikasi?: boolea
       <DialogTrigger
         render={
           <button
+            id={id}
             className="p-3.5 md:p-3 -translate-y-5 md:translate-y-0 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground text-center transition-transform active:scale-95"
           >
             <QrCode className="size-7 md:size-6" strokeWidth={2} />

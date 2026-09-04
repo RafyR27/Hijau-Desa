@@ -9,7 +9,7 @@ export default async function TransactionsPage() {
   return (
     <SidebarLayout user={session.user}>
       <SiteHeader title="Transaksi" />
-      <TransactionsView user={session.user} />
+      <TransactionsView />
     </SidebarLayout>
   );
 }

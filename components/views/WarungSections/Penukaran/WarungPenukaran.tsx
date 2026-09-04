@@ -74,7 +74,7 @@ const WarungPenukaran = ({ profile, token, wargaId }: WarungPenukaranProps) => {
         </div>
       </div>
 
-      <div className="space-y-3 mb-35">
+      <div className="space-y-3 mb-35 md:mb-10">
         <h2 className="font-bold">Katalog Produk</h2>
         <InputGroup className="h-10">
           <InputGroupAddon>
@@ -88,7 +88,7 @@ const WarungPenukaran = ({ profile, token, wargaId }: WarungPenukaranProps) => {
           />
         </InputGroup>
 
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {isLoading ? (
             [1, 2, 3, 4].map((item) => <div key={item}></div>)
           ) : products.length > 0 ? (
@@ -156,7 +156,7 @@ const WarungPenukaran = ({ profile, token, wargaId }: WarungPenukaranProps) => {
         </div>
       </div>
 
-      <div className="w-full bg-background fixed flex flex-col bottom-0 right-0 py-3 px-5 drop-shadow-2xl rounded-t-3xl gap-5 z-20">
+      <div className="w-full bg-background fixed md:static flex flex-col bottom-0 right-0 py-3 px-5 drop-shadow-2xl md:drop-shadow-none md:border md:border-border md:rounded-3xl rounded-t-3xl gap-5 z-20">
         <div className="flex justify-between items-end">
           <div className="space-y-0.5">
             <p className="font-medium text-sm text-muted-foreground">
@@ -184,11 +184,13 @@ const WarungPenukaran = ({ profile, token, wargaId }: WarungPenukaranProps) => {
           }
           onClick={handleSimpanTukar}
         >
-          {isPending || isSuccess
-            ? <Spinner />
-              : profile && !isPoinCukup
-                ? "Poin Tidak Cukup"
-                : "Proses Penukaran"}
+          {isPending || isSuccess ? (
+            <Spinner />
+          ) : profile && !isPoinCukup ? (
+            "Poin Tidak Cukup"
+          ) : (
+            "Proses Penukaran"
+          )}
         </Button>
       </div>
     </div>

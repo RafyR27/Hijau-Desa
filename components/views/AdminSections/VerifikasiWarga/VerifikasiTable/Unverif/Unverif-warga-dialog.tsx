@@ -112,7 +112,7 @@ const UnverifWargaDialog = ({
             >
               <SelectTrigger
                 id="rejection-reason"
-                className="w-full bg-input/30 py-4"
+                className="w-full bg-input/30 py-4 mr-0"
               >
                 <SelectValue placeholder="Pilih alasan penolakan" />
               </SelectTrigger>

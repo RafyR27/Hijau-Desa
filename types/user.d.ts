@@ -20,6 +20,22 @@ interface IEditProfile {
   noRumah: string;
 }
 
+interface IEditEmail {
+  newEmail: string;
+}
+
+interface ISetPassword {
+  password: string;
+  confirmPassword: string;
+}
+
+interface UserSecurityInfo {
+  loginMethods: ("credential" | "google" | string)[];
+  hasPassword: boolean;
+  passwordUpdatedAt: string | null;
+  email: string;
+}
+
 interface SessionUser {
   id: string;
   name: string;
@@ -72,6 +88,9 @@ export type {
   ICompleteProfile,
   SessionUser,
   IEditProfile,
+  IEditEmail,
+  ISetPassword,
+  UserSecurityInfo,
   ProfileData,
   VerifWarga,
 };
