@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 
-// Mapping role -> dashboard path
 const roleDashboardMap: Record<string, string> = {
   warga: "/warga/dashboard",
   petugas: "/petugas/dashboard",
@@ -16,24 +15,79 @@ export async function proxy(request: NextRequest) {
     headers: request.headers,
   });
 
-  if (pathname === "/auth" || pathname === "/auth/register-email" || pathname === "/auth/forgot-password" || pathname === "/auth/forgot-password" || pathname === "/auth/reset-password") {
-    if (session) {
-      const dashboard =
-        roleDashboardMap[session.user.role as string] || "/warga/dashboard";
-      return NextResponse.redirect(new URL(dashboard, request.url));
+  if (!session) {
+    const isAuthRoute =
+      pathname === "/auth" ||
+      pathname === "/auth/register-email" ||
+      pathname === "/auth/forgot-password" ||
+      pathname === "/auth/reset-password";
+
+    if (isAuthRoute) {
+      return NextResponse.next();
+    }
+
+    const protectedPrefixes = [
+      "/warga",
+      "/admin",
+      "/petugas",
+      "/warung",
+      "/complete-profile",
+      "/suspended",
+      "/rejected",
+    ];
+
+    const isProtected = protectedPrefixes.some((prefix) =>
+      pathname.startsWith(prefix),
+    );
+
+    if (isProtected) {
+      return NextResponse.redirect(new URL("/auth", request.url));
+    }
+
+    return NextResponse.next();
+  }
+
+  if (session.user.banned) {
+    if (pathname !== "/suspended") {
+      return NextResponse.redirect(new URL("/suspended", request.url));
     }
     return NextResponse.next();
   }
 
-  const protectedPrefixes = ["/warga", "/admin", "/petugas", "/warung"];
-  const isProtected = protectedPrefixes.some((prefix) =>
-    pathname.startsWith(prefix),
-  );
+  if (session.user.rejectionReason) {
+    if (pathname !== "/rejected") {
+      return NextResponse.redirect(new URL("/rejected", request.url));
+    }
+    return NextResponse.next();
+  }
 
-  if (!isProtected) return NextResponse.next();
+  const userRole = (session.user.role as string) || "warga";
+  const userDashboard = roleDashboardMap[userRole] || "/warga/dashboard";
 
-  if (!session) {
-    return NextResponse.redirect(new URL("/auth", request.url));
+  if (pathname === "/suspended" || pathname === "/rejected") {
+    return NextResponse.redirect(new URL(userDashboard, request.url));
+  }
+
+  const isAuthRoute =
+    pathname === "/auth" ||
+    pathname === "/auth/register-email" ||
+    pathname === "/auth/forgot-password" ||
+    pathname === "/auth/reset-password";
+
+  if (isAuthRoute) {
+    return NextResponse.redirect(new URL(userDashboard, request.url));
+  }
+
+  const hasIncompleteProfile = !session.user.noHP || !session.user.noRumah;
+  if (hasIncompleteProfile) {
+    if (!pathname.startsWith("/complete-profile")) {
+      return NextResponse.redirect(new URL("/complete-profile", request.url));
+    }
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith("/complete-profile")) {
+    return NextResponse.redirect(new URL(userDashboard, request.url));
   }
 
   const exactRolePaths = ["/admin", "/warga", "/petugas", "/warung"];
@@ -43,16 +97,6 @@ export async function proxy(request: NextRequest) {
     );
   }
 
-  if (
-    !pathname.startsWith("/complete-profile") &&
-    (!session.user.noHP || !session.user.noRumah)
-  ) {
-    return NextResponse.redirect(
-      new URL("/complete-profile", request.url),
-    );
-  }
-
-  const userRole = session.user.role as string;
   const roleRouteMap: Record<string, string> = {
     warga: "/warga",
     petugas: "/petugas",
@@ -61,10 +105,13 @@ export async function proxy(request: NextRequest) {
   };
 
   const allowedPrefix = roleRouteMap[userRole];
-  if (allowedPrefix && !pathname.startsWith(allowedPrefix)) {
-    const correctDashboard =
-      roleDashboardMap[userRole] || "/warga/dashboard";
-    return NextResponse.redirect(new URL(correctDashboard, request.url));
+  const protectedPrefixes = ["/warga", "/admin", "/petugas", "/warung"];
+  const isProtected = protectedPrefixes.some((prefix) =>
+    pathname.startsWith(prefix),
+  );
+
+  if (isProtected && allowedPrefix && !pathname.startsWith(allowedPrefix)) {
+    return NextResponse.redirect(new URL(userDashboard, request.url));
   }
 
   return NextResponse.next();
@@ -78,5 +125,8 @@ export const config = {
     "/petugas/:path*",
     "/warung/:path*",
     "/complete-profile/:path*",
+    "/suspended/:path*",
+    "/rejected/:path*",
   ],
 };
+

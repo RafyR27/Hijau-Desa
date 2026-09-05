@@ -7,10 +7,10 @@ export default function NotFoundSection() {
     <div className="w-full flex px-5 md:px-20 flex-1">
       <div className="w-full flex flex-col items-center justify-center">
         <div className="w-full flex items-center justify-center">
-          <p className="font-extrabold text-[13rem] text-muted-foreground/20">
+          <p className="font-extrabold text-[10rem] md:text-[13rem] text-muted-foreground/20">
             4
           </p>
-          <div className="w-40 mt-10">
+          <div className="md:w-40 w-30 mt-10">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="currentColor"
@@ -53,7 +53,7 @@ c-19 -1 -57 -5 -85 -10z M1595 1100 c-34 -22 -59 -44 -57 -51 2 -8 26 -51 53
               </g>
             </svg>
           </div>
-          <p className="font-extrabold text-[13rem] text-muted-foreground/20">
+          <p className="font-extrabold text-[10rem] md:text-[13rem] text-muted-foreground/20">
             4
           </p>
         </div>

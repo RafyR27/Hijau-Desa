@@ -7,7 +7,6 @@ import {
   Store,
   Trash2,
   Users,
-  UserRoundKey,
   UserRoundPen,
   Wrench,
   Ban,
@@ -25,7 +24,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import EditUserDialog from "./EditUser/Edit-user-dialog";
 import { useState } from "react";
-import ResetPassUserDialog from "./ResetPassUser/ResetPass-user-dialog";
 import { ProfileData } from "@/types/user";
 import { cn } from "@/lib/utils";
 import BannedUserDialog from "./BannedUser/Banned-user-dialog";
@@ -267,18 +265,12 @@ export const columns = wargaWarungColumns;
 
 const UserActions = ({ user }: { user: ProfileData }) => {
   const [editOpen, setEditOpen] = useState(false);
-  const [resetOpen, setResetOpen] = useState(false);
   const [banOpen, setBanOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<ProfileData | null>(null);
 
   const handleEdit = () => {
     setSelectedUser(user);
     setEditOpen(true);
-  };
-
-  const handleResetPassword = () => {
-    setSelectedUser(user);
-    setResetOpen(true);
   };
 
   const handleBan = () => {
@@ -308,14 +300,6 @@ const UserActions = ({ user }: { user: ProfileData }) => {
               <UserRoundPen />
             </DropdownMenuItem>
 
-            <DropdownMenuItem
-              className="flex cursor-pointer justify-between"
-              onClick={handleResetPassword}
-            >
-              Reset Password
-              <UserRoundKey />
-            </DropdownMenuItem>
-
             <DropdownMenuSeparator />
 
             <DropdownMenuItem
@@ -334,14 +318,6 @@ const UserActions = ({ user }: { user: ProfileData }) => {
         <EditUserDialog
           open={editOpen}
           onOpenChange={setEditOpen}
-          user={selectedUser}
-        />
-      )}
-
-      {selectedUser && (
-        <ResetPassUserDialog
-          open={resetOpen}
-          onOpenChange={setResetOpen}
           user={selectedUser}
         />
       )}

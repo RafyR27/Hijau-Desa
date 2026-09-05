@@ -49,7 +49,10 @@ export default function ProfileEditLayout({ user }: { user?: SessionUser }) {
           <div className="flex flex-col items-center gap-3">
             <Avatar className="w-20 h-20">
               <AvatarImage
-                src={user?.image || "https://github.com/shadcn.png"}
+                src={
+                  user?.image ||
+                  "https://res.cloudinary.com/dejhqj1te/image/upload/v1787872501/Frame_3_ytpno7.png"
+                }
                 alt={user?.name || "User"}
               />
               <AvatarFallback>
@@ -98,7 +101,7 @@ export default function ProfileEditLayout({ user }: { user?: SessionUser }) {
                 />
 
                 <Link
-                  href={`/${user?.role || "warga"}/profile/edit/edit-email`}
+                  href={`/${user?.role}/profile/edit/edit-email`}
                   className={buttonVariants({
                     className: "rounded-lg h-11 lg:h-9 px-4",
                   })}

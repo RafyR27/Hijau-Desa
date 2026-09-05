@@ -59,6 +59,10 @@ export const auth = betterAuth({
         type: "string",
         defaultValue: "",
       },
+      rejectionReason: {
+        type: "string",
+        required: false,
+      },
     },
   },
 

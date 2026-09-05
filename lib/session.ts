@@ -11,6 +11,14 @@ export async function getRequiredSession() {
 
   if (!session) redirect("/auth");
 
+  if (session.user.banned) {
+    redirect("/suspended");
+  }
+
+  if (session.user.rejectionReason) {
+    redirect("/rejected");
+  }
+
   return session;
 }
 
