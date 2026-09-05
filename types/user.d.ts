@@ -48,6 +48,10 @@ interface SessionUser {
   newAccount: boolean;
   noHP: string;
   noRumah: string;
+  rejectionReason?: string | null;
+  banned?: boolean | null;
+  banReason?: string | null;
+  banExpires?: Date | string | null;
 }
 
 type ProfileData = {

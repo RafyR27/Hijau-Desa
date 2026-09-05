@@ -57,7 +57,9 @@ export function NavUser({
                 }
                 alt={user?.name}
               />
-              <AvatarFallback className="rounded-full">CN</AvatarFallback>
+              <AvatarFallback className="rounded-full">
+                {user?.name ? user.name.substring(0, 2).toUpperCase() : "CN"}
+              </AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">{user?.name}</span>
@@ -84,7 +86,11 @@ export function NavUser({
                       }
                       alt={user?.name}
                     />
-                    <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                    <AvatarFallback className="rounded-lg">
+                      {user?.name
+                        ? user.name.substring(0, 2).toUpperCase()
+                        : "CN"}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">{user?.name}</span>

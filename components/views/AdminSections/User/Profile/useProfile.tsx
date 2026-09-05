@@ -4,11 +4,12 @@ import { IEditProfile, SessionUser } from "@/types/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
-const formEditProfileSchema = z.object({
+export const formProfileSchema = z.object({
   name: z
     .string()
     .trim()
@@ -31,15 +32,18 @@ const formEditProfileSchema = z.object({
     .max(20, "Nomor rumah maksimal 20 karakter"),
 });
 
-export const useProfileEdit = ({ user }: { user?: SessionUser }) => {
+export type FormProfileValues = z.infer<typeof formProfileSchema>;
+
+export const useProfile = ({ user }: { user?: SessionUser }) => {
   const router = useRouter();
+
   const {
     control,
     handleSubmit,
     formState: { isDirty },
     reset,
-  } = useForm<z.infer<typeof formEditProfileSchema>>({
-    resolver: zodResolver(formEditProfileSchema),
+  } = useForm<FormProfileValues>({
+    resolver: zodResolver(formProfileSchema),
     defaultValues: {
       name: user?.name ?? "",
       noHP: user?.noHP ?? "",
@@ -47,28 +51,38 @@ export const useProfileEdit = ({ user }: { user?: SessionUser }) => {
     },
   });
 
-  const updateService = async (payload: IEditProfile) => {
-    await instance.patch("/general/edit-profile", payload);
+  useEffect(() => {
+    if (!user) return;
+    reset({
+      name: user.name ?? "",
+      noHP: user.noHP ?? "",
+      noRumah: user.noRumah ?? "",
+    });
+  }, [user, reset]);
+
+  const updateProfileService = async (payload: IEditProfile) => {
+    const res = await instance.patch("/general/edit-profile", payload);
+    return res.data;
   };
 
   const { mutate: mutateUpdate, isPending: isPendingUpdate } = useMutation({
-    mutationFn: updateService,
+    mutationFn: updateProfileService,
     onError() {
       toast.error("Gagal memperbarui profil", {
         position: "top-right",
       });
     },
-
     onSuccess: async () => {
       toast.success("Profil berhasil diperbarui", {
         position: "top-right",
       });
+      // Refresh Better Auth session on client and server
       await authClient.getSession();
       router.refresh();
     },
   });
 
-  const handleUpdate = (payload: IEditProfile) => mutateUpdate(payload);
+  const handleUpdate = (payload: FormProfileValues) => mutateUpdate(payload);
 
   return {
     control,

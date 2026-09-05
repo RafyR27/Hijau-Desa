@@ -1,3 +1,4 @@
+import { authClient } from "@/lib/auth-client";
 import instance from "@/lib/instance";
 import { SessionUser } from "@/types/user";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,7 +9,7 @@ import { toast } from "sonner";
 import * as z from "zod";
 
 const formEditEmailSchema = z.object({
-  newEmail: z.email("Email baru wajib diisi").trim().toLowerCase()
+  newEmail: z.email("Email baru wajib diisi").trim().toLowerCase(),
 });
 
 type EditEmailPayload = z.infer<typeof formEditEmailSchema>;
@@ -39,21 +40,24 @@ export const useEditEmail = ({ user }: { user?: SessionUser }) => {
     await instance.patch("/general/edit-email", payload);
   };
 
-  const { mutate: mutateUpdateEmail, isPending: isPendingUpdate } =
-    useMutation({
+  const { mutate: mutateUpdateEmail, isPending: isPendingUpdate } = useMutation(
+    {
       mutationFn: updateEmailService,
-      onError(error: Error) {
-        toast.error(error?.message, {
+      onError() {
+        toast.error("Gagal memperbarui email", {
           position: "top-right",
         });
       },
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success("Email berhasil diperbarui", {
           position: "top-right",
         });
+        await authClient.getSession();
+        router.refresh();
         router.back();
       },
-    });
+    },
+  );
 
   const handleUpdateEmail = (payload: EditEmailPayload) =>
     mutateUpdateEmail(payload);

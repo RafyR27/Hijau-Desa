@@ -123,7 +123,10 @@ const Navbar = ({ user }: { user?: SessionUser }) => {
 
       <Avatar size="default">
         <AvatarImage
-          src={user?.image || "https://github.com/shadcn.png"}
+          src={
+            user?.image ||
+            "https://res.cloudinary.com/dejhqj1te/image/upload/v1787872501/Frame_3_ytpno7.png"
+          }
           alt={user?.name || "User"}
         />
         <AvatarFallback>
@@ -263,11 +266,17 @@ const NavbarProfile = () => {
   const route = usePathname();
 
   const getBackLink = () => {
+    if (route.includes("/admin/user/profile/edit-email")) {
+      return "/admin/user/profile";
+    }
+
     const role = route.includes("warga")
       ? "warga"
       : route.includes("petugas")
         ? "petugas"
-        : "warung";
+        : route.includes("warung")
+          ? "warung"
+          : "admin";
 
     if (route.includes("/profile/edit/edit-email")) {
       return `/${role}/profile/edit`;

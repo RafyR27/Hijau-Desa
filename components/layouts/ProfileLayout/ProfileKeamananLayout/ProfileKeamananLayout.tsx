@@ -77,7 +77,7 @@ export default function ProfileKeamananLayout({
           </div>
 
           {/* Status Keamanan & Metode Login */}
-          <Card className="ring-0 p-0">
+          <Card className="ring-0 p-0 rounded-none">
             <CardHeader className="p-0">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="size-5" />
@@ -159,7 +159,7 @@ export default function ProfileKeamananLayout({
             <>
               {hasPassword ? (
                 /* Case 1: Pengguna memiliki kata sandi (login via credential / password sudah dibuat) */
-                <Card className="ring-0 p-0">
+                <Card className="ring-0 p-0 rounded-none">
                   <CardHeader className="p-0">
                     <div className="flex items-center gap-2">
                       <KeyRound className="size-5" />
@@ -207,7 +207,7 @@ export default function ProfileKeamananLayout({
                   </CardContent>
                 </Card>
               ) : (
-                <Card className="ring-0">
+                <Card className="ring-0 p-0 rounded-none">
                   <CardHeader className="p-0">
                     <div className="flex items-center gap-2">
                       <Lock className="size-5" />
