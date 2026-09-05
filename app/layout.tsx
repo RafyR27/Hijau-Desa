@@ -20,7 +20,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={cn("h-full", "antialiased", plusJakartaSans.variable)}
+      className={cn("h-full", "antialiased", "scroll-smooth", plusJakartaSans.variable)}
     >
       <link rel="icon" href="/logo.svg" sizes="any" />
       <body className="min-h-full flex flex-col">
