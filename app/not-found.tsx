@@ -1,10 +1,10 @@
-import HomeSection from "@/components/views/HomeSection/HomeSection";
 import HomeLayout from "../components/layouts/HomeLayout/HomeLayout";
+import NotFoundSection from "@/components/views/NotFoundSection/NotFoundSection";
 
 export default function Home() {
   return (
     <HomeLayout>
-      <HomeSection />
+      <NotFoundSection />
     </HomeLayout>
   );
 }

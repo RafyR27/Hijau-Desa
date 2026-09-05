@@ -176,7 +176,7 @@ const ProfileLayout = ({ user }: { user?: SessionUser }) => {
             <SettingsItem
               icon={<Info className="size-5" />}
               title="Tentang Aplikasi"
-              description="Informasi versi dan pengembang"
+              description="Tentang Aplikasi Hijau Desa"
               href={"#"}
             />
 
