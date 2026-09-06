@@ -13,6 +13,15 @@
 
 </div>
 
+## Akun Live Demo
+
+| Email                           | Password             | Role                       |
+| ------------------------------- | -------------------- | -------------------------- |
+| warga1@gmail.com | warga1234 | Warga  |
+| petugas1@gmail.com      | petugas1234 | Petugas |
+| warung1@gmail.com            | warung1234    | Warung  |
+| admin1@gmail.com            | admin1234    | Admin  |
+
 \---
 
 ## Daftar Isi
