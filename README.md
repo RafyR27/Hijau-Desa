@@ -4,8 +4,8 @@
 
 ### Platform Digital untuk Mendukung Pengelolaan dan Pemberdayaan Desa
 
-[!\[Live Demo](https://img.shields.io/badge/Live_Demo-Visit_Site-success?style=for-the-badge)](https://hijaudesa.site/)
-[!\[GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/RafyR27/Hijau-Desa)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Visit_Site-success?style=for-the-badge)](https://hijaudesa.site/)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/RafyR27/Hijau-Desa)
 
 **Submission for ITECHNO CUP 2026 - Web Development**
 
@@ -117,7 +117,7 @@ Warga yang menyetorkan sampah non-organik terpilah dikelompokkan ke dalam bebera
 
 <p><em>Dashboard Warga</em></p>
 
-<img src="https://res.cloudinary.com/dejhqj1te/image/upload/v1788609253/Screenshot_2026-09-05_184845_t33jzh.QR" alt="QR Code" width="800"/>
+<img src="https://res.cloudinary.com/dejhqj1te/image/upload/v1788609253/Screenshot_2026-09-05_184845_t33jzh.png" alt="QR Code" width="800"/>
 
 <p><em>QR Code Warga</em></p>
 
@@ -266,7 +266,7 @@ Aplikasi **Hijau Desa** dibangun menggunakan modern web stack berbasis **Next.js
 ```text
                +-------------------------------------------------------------+
                |                       Klien / Pengguna                      |
-               |         (Warga | Petugas Timbang | Warung Mitra | Admin)     |
+               |         (Warga | Petugas Timbang | Warung Mitra | Admin)    |
                +------------------------------+------------------------------+
                                               |
                                               | HTTPS / Web Browser
